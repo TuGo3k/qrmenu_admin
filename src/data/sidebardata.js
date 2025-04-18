@@ -1,4 +1,9 @@
 const sidebardata = [
+  {
+    title: "Dashboard",
+    icon: "/assets/sidebar/sales.svg",
+    link: "/"
+  },
     {
       title: "Ангилал",
       icon: "/assets/sidebar/dashboard.svg",

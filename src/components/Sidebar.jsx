@@ -37,6 +37,7 @@ const Sidebar = () => {
           </div>
         )}
       </div>
+
       <div className="flex flex-col items-start justify-center w-full gap-3 pt-4">
         {sidebardata.map((e, index) => (
           <div key={index} className="w-full">
@@ -59,11 +60,12 @@ const Sidebar = () => {
                        pathName.includes(e.link) &&
                        selectedMenu ===
                          ""
-                         ? "bg-orange-500 text-orange-400"
+                         ? "bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)]"
                          : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)] "
                      }`}
                 >
                   <div className="flex items-center gap-2">
+                  
                     <img src={e.icon} className="h-8 w-8 object-cover" alt="" />
                     <p
                       className={`font-extralight transition-all duration-300 ${
@@ -82,35 +84,38 @@ const Sidebar = () => {
                 </Link>
               ) : (
                 <button
-                  key={index}
-                  onClick={() => setSelectedMenu(e.title)}
-                  className={`cursor-pointer text-[var(--foreground)] flex justify-between p-2 rounded-lg
-                     ease-in-out duration-300 w-full items-center gap-2 ${
-                       selectedMenu === e.title
-                         ? "bg-[var(--sidebar-text-active)] text-[var(--sidebar-text-active:white)]"
-                         : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)] "
-                     }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <img src={e.icon} className="h-8 w-8 object-cover" alt="" />
-                    <p
-                      className={`font-extralight transition-all duration-300 ${
-                        isOpen ? "block" : "hidden"
-                      }`}
-                    >
-                      {e.title}
-                    </p>
-                  </div>
-                  {e.items && (
-                    <IoIosArrowDown
-                      className={isOpen ? "block" : "hidden"}
-                      size={20}
-                    />
-                  )}
-                </button>
+                key={index}
+                onClick={() =>
+                  setSelectedMenu((prev) => (prev === e.title ? null : e.title))
+                }
+                className={`cursor-pointer text-[var(--foreground)] flex justify-between p-2 rounded-lg 
+                  ease-in-out duration-300 w-full items-center gap-2 ${
+                    selectedMenu === e.title
+                      ? "bg-[var(--sidebar-text-active)] text-[var(--sidebar-text-active:white)]"
+                      : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)] "
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <img src={e.icon} className="h-8 w-8 object-cover" alt="" />
+                  <p
+                    className={`font-extralight ease-in-out transition-transform duration-300 ${
+                      isOpen ? "block" : "hidden"
+                    }`}
+                  >
+                    {e.title}
+                  </p>
+                </div>
+                {e.items && (
+                  <IoIosArrowDown
+                    className={isOpen ? "block" : "hidden"}
+                    size={20}
+                  />
+                )}
+              </button>
+              
               )}
             </div>
-            {/* {selectedMenu} */}
+            {/*---------subtitles--------*/}
             {isOpen ? (
               e.title === selectedMenu ||
               (e.items &&

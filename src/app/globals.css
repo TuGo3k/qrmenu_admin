@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@plugin "flowbite-react/plugin/tailwindcss";
+@source "../../.flowbite-react/class-list.json";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -38,6 +40,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
     --sidebar-active: #3e80f9;
+    --search-color: #d7dae8;
     --hover:#ecf2fe;
     --sidebar-text-active:white;
     --sidebar-text-hover:#3e80f9;
