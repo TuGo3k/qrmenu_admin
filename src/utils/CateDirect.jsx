@@ -6,7 +6,7 @@ import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 export const CateDirect = () => {
     const pathname = usePathname()
     const title = pathname.split('/').filter(Boolean)[0]; // removes empty "" and gives "dashboard"
-    console.log(title);
+
   return (
     <div
       className="w-full py-5 px-5 flex justify-between top-0 items-center 

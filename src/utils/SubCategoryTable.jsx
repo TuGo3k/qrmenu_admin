@@ -50,7 +50,7 @@ export default function CustomTable() {
   useEffect(() => {
     if (isLoading) {
       getRequest({
-        route: "/category",
+        route: `/subcategory/`,
         setValue: (data) => {
           const formatted = data.map((item) => ({
             ...item,
@@ -183,6 +183,7 @@ export default function CustomTable() {
                   </TableCell>
                   {columns.map((column) => {
                     const value = row[column.id];
+                    console.log(value)
                     return (
                       <TableCell key={column.id} align={column.align}>
                         {column.id === "image" && value ? (
@@ -192,7 +193,8 @@ export default function CustomTable() {
                             style={{ maxHeight: 100 }}
                           />
                         ) : (
-                          value
+                         value
+                         
                         )}
                       </TableCell>
                     );

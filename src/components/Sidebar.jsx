@@ -26,16 +26,12 @@ const Sidebar = () => {
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcO3j2tUuDNPplkoV8lD6LmHBU0qyJgvt1Sw&s"
           alt=""
         />
-        {isOpen && (
-          <div className="flex w-full flex-col gap-3 transition-opacity duration-300">
-            <h2 className="font-semibold text-sm text-white font-sans">
-              E-commerce дэлгүүр
-            </h2>
-            <p className="text-xs text-[#d3d3d3] font-sans font-thin">
-              Хүнсний дэлгүүр
-            </p>
-          </div>
-        )}
+
+        <div className="flex w-full flex-col gap-3 transition-opacity duration-300">
+          <h2 className="font-semibold text-sm text-black font-sans">
+            Template
+          </h2>
+        </div>
       </div>
 
       <div className="flex flex-col items-start justify-center w-full gap-3 pt-4">
@@ -57,18 +53,49 @@ const Sidebar = () => {
                   onClick={() => setSelectedMenu("")}
                   className={`cursor-pointer flex text-[var(--foreground)] justify-between p-2 rounded-lg
                      ease-in-out duration-300 w-full items-center gap-2 ${
-                       pathName.includes(e.link) &&
-                       selectedMenu ===
-                         ""
+                       pathName.includes(e.link) && selectedMenu === ""
                          ? "bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)]"
                          : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)] "
                      }`}
                 >
                   <div className="flex items-center gap-2">
-                  
-                    <img src={e.icon} className="h-8 w-8 object-cover" alt="" />
+                    <span className=" object-cover" alt="">
+                      {e.icon}
+                    </span>
                     <p
                       className={`font-extralight transition-all duration-300 ${
+                        isOpen ? "block" : "hidden"
+                      }`}
+                    >
+                      {e.title}
+                    </p>
+                  </div>
+                  {/* {e.items && (
+                    <IoIosArrowDown
+                      className={isOpen ? "block" : "hidden"}
+                      size={20}
+                    />
+                  )} */}
+                </Link>
+              ) : (
+                <button
+                  key={index}
+                  onClick={() =>
+                    setSelectedMenu((prev) =>
+                      prev === e.title ? null : e.title
+                    )
+                  }
+                  className={`cursor-pointer text-[var(--foreground)] flex justify-between p-2 rounded-lg 
+                  ease-in-out duration-300 w-full items-center gap-2 ${
+                    selectedMenu === e.title
+                      ? "bg-[var(--sidebar-text-active)] text-[var(--sidebar-text-active:white)]"
+                      : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)] "
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <img src={e.icon} className="h-8 w-8 object-cover" alt="" />
+                    <p
+                      className={`font-extralight ease-in-out transition-transform duration-300 ${
                         isOpen ? "block" : "hidden"
                       }`}
                     >
@@ -81,38 +108,7 @@ const Sidebar = () => {
                       size={20}
                     />
                   )}
-                </Link>
-              ) : (
-                <button
-                key={index}
-                onClick={() =>
-                  setSelectedMenu((prev) => (prev === e.title ? null : e.title))
-                }
-                className={`cursor-pointer text-[var(--foreground)] flex justify-between p-2 rounded-lg 
-                  ease-in-out duration-300 w-full items-center gap-2 ${
-                    selectedMenu === e.title
-                      ? "bg-[var(--sidebar-text-active)] text-[var(--sidebar-text-active:white)]"
-                      : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)] "
-                  }`}
-              >
-                <div className="flex items-center gap-2">
-                  <img src={e.icon} className="h-8 w-8 object-cover" alt="" />
-                  <p
-                    className={`font-extralight ease-in-out transition-transform duration-300 ${
-                      isOpen ? "block" : "hidden"
-                    }`}
-                  >
-                    {e.title}
-                  </p>
-                </div>
-                {e.items && (
-                  <IoIosArrowDown
-                    className={isOpen ? "block" : "hidden"}
-                    size={20}
-                  />
-                )}
-              </button>
-              
+                </button>
               )}
             </div>
             {/*---------subtitles--------*/}
