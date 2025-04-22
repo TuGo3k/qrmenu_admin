@@ -11,7 +11,6 @@ import TableRow from "@mui/material/TableRow";
 import IconButton from "@mui/material/IconButton";
 import { RiDeleteBin6Fill, RiEdit2Fill } from "react-icons/ri";
 import {
-  Typography,
   Button,
   Dialog,
   DialogActions,
@@ -19,48 +18,68 @@ import {
   DialogTitle,
   TextField,
   Box,
+  FormControl,
+  Card,
+  CardContent,
+  CardHeader,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import getRequest from "./api/getRequest";
 import apiData from "@/data/apidata";
 import axios from "axios";
+import deleteRequest from "./api/deleteRequest";
 const columns = [
-  { id: "title", label: "Нэр", minWidth: 170 },
+  { id: "title", label: "Дэд Категорууд", minWidth: 170 },
   { id: "description", label: "Дэлгэрэнгүй", minWidth: 100 },
   { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
   { id: "image", label: "Зураг", minWidth: 170, align: "right" },
-  { id: "subcategory", label: "Дэд ангилал", minWidth: 170, align: "right" },
+  { id: "category", label: "Ангилал", minWidth: 170, align: "right" },
 ];
 
 export default function CustomTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [rowsData, setRowsData] = useState([]);
+  const [category, setCategory] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteRowId, setDeleteRowId] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
-    price: "",
-    image: null,
-    subcategory: "",
+    category: "",
   });
   const [isLoading, setIsLoading] = useState(true);
-
+console.log(formData);
   useEffect(() => {
     if (isLoading) {
-      getRequest({
-        route: `/subcategory/`,
-        setValue: (data) => {
-          const formatted = data.map((item) => ({
-            ...item,
-            image: apiData.file_api_url + item.image,
-          }));
-          setRowsData(formatted);
-        },
-        setIsLoading,
-        errorFunction: () => console.error("Failed to fetch data"),
-      });
+      Promise.all([
+        getRequest({
+          route: `/subcategory/`,
+          setValue: (data) => {
+            console.log(data)
+            const formatted = data.map((item) => ({
+              ...item,
+              // image: apiData.file_api_url + item.image,
+              // title: item,
+              // category: item,
+            }));
+            setRowsData(formatted);
+          },
+
+          errorFunction: () => console.error("Failed to fetch data"),
+        }),
+        getRequest({
+          route: "/category",
+          setValue: setCategory,
+          setIsLoading,
+          errorFunction: () => console.error("Failed to fetch data"),
+        }),
+      ]);
     }
   }, [isLoading]);
 
@@ -73,7 +92,13 @@ export default function CustomTable() {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
-    setFormData({ title: "", description: "", price: "", image: null, subcategory: "" });
+    setFormData({
+      title: "",
+      description: "",
+      price: "",
+      image: null,
+      subcategory: "",
+    });
     setEditingId(null);
     setOpen(false);
   };
@@ -91,27 +116,26 @@ export default function CustomTable() {
     try {
       const payload = {
         title: formData.title,
-        description: formData.description,
-        price: formData.price,
-        subcategory: formData.subcategory,
-        image: formData.image, // Optional: base64 or image URL depending on your backend
+        // description: formData.description,
+        // price: formData.price,
+        category: formData.category,
+        // image: formData.image,
       };
-  
+console.log(formData.category);
       // If editing, send PUT
       if (editingId) {
-        await axios.put(`${apiData.api_url}/category/${editingId}`, payload);
+        await axios.put(`${apiData.api_url}/subcategory/${editingId}`, payload);
       } else {
-        await axios.post(`${apiData.api_url}/category`, payload);
+        await axios.post(`${apiData.api_url}/subcategory`, payload);
       }
-  
+
       setIsLoading(true);
       handleClose();
     } catch (error) {
       console.error("Failed to submit JSON:", error);
     }
   };
-  
-  
+
   // const handleSubmit = () => {
   //   const updatedRow = {
   //     id: editingId || Date.now() + Math.random(),
@@ -142,11 +166,29 @@ export default function CustomTable() {
     setOpen(true);
   };
 
-  const handleDelete = (row) => {
-    if (window.confirm("Та энэ мөрийг устгахдаа итгэлтэй байна уу?")) {
-      setRowsData((prevData) => prevData.filter((item) => item.id !== row.id));
-    }
-  };
+   const handleDeleteClick = (rowId) => {
+     console.log(rowId);
+     setDeleteRowId(rowId); // Store the row ID to delete
+     setDeleteModalOpen(true); // Open the modal
+   };
+
+   const handleDeleteConfirm = async () => {
+     try {
+       await deleteRequest({
+         route: `/subcategory/${deleteRowId}`,
+         setIsLoading,
+       });
+       setDeleteModalOpen(false); // Close the modal
+       setDeleteRowId(null); // Clear the row ID
+       window.location.reload(); // Reload the page
+     } catch (error) {
+       console.error("Failed to delete the product:", error);
+     }
+   };
+   const handleDeleteCancel = () => {
+     setDeleteModalOpen(false); // Close the modal
+     setDeleteRowId(null); // Clear the row ID
+   };
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", padding: 2 }}>
@@ -182,8 +224,18 @@ export default function CustomTable() {
                     {page * rowsPerPage + rowIndex + 1}
                   </TableCell>
                   {columns.map((column) => {
-                    const value = row[column.id];
-                    console.log(value)
+                    let value = row[column.id];
+
+                    // If the column is "category", map the category ID to its title
+                    if (column.id === "category" && value) {
+                      const categoryObj = category.find(
+                        (cat) => cat._id === value
+                      );
+                      value = categoryObj
+                        ? categoryObj.title
+                        : "Unknown Category";
+                    }
+
                     return (
                       <TableCell key={column.id} align={column.align}>
                         {column.id === "image" && value ? (
@@ -193,8 +245,7 @@ export default function CustomTable() {
                             style={{ maxHeight: 100 }}
                           />
                         ) : (
-                         value
-                         
+                          value
                         )}
                       </TableCell>
                     );
@@ -203,7 +254,10 @@ export default function CustomTable() {
                     <IconButton color="primary" onClick={() => handleEdit(row)}>
                       <RiEdit2Fill />
                     </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(row)}>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteClick(row._id)}
+                    >
                       <RiDeleteBin6Fill />
                     </IconButton>
                   </TableCell>
@@ -221,29 +275,60 @@ export default function CustomTable() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-
+      <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Баталгаажуулалт</DialogTitle>
+        <DialogContent>
+          Та энэ мөрийг устгахдаа итгэлтэй байна уу?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Болих
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="secondary"
+            variant="contained"
+          >
+            Устгах
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold" }}>Категори нэмэх</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          Дэд категори нэмэх
+        </DialogTitle>
         <DialogContent>
           <Box display="flex" flexDirection="column" gap={3} mt={1}>
-            <TextField label="Нэр" name="title" value={formData.title} onChange={handleInputChange} fullWidth />
-            <TextField label="Дэлгэрэнгүй" name="description" value={formData.description} onChange={handleInputChange} fullWidth multiline rows={3} />
-            <TextField label="Үнэ" name="price" value={formData.price} onChange={handleInputChange} type="number" fullWidth />
-            <Box>
-              <Typography variant="subtitle1">Зураг сонгох</Typography>
-              <input accept="image/*" type="file" name="image" onChange={handleInputChange} />
-              {formData.image && typeof formData.image === "object" && (
-                <Box mt={2}>
-                  <img src={URL.createObjectURL(formData.image)} alt="Зураг" style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8 }} />
-                </Box>
-              )}
-            </Box>
-            <TextField label="Дэд категори" name="subcategory" value={formData.subcategory} onChange={handleInputChange} fullWidth />
+            <TextField
+              label="Дэд категорийн нэр"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              fullWidth
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="subcategory-label">Дэд ангилал</InputLabel>
+              <Select
+                labelId="subcategory-label"
+                name="subcategory"
+                value={formData.category}
+                onChange={handleInputChange}
+                fullWidth
+              >
+                {category.map((cat) => (
+                  <MenuItem key={cat._id} value={cat._id}>
+                    {cat.title}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Болих</Button>
-          <Button variant="contained" onClick={handleSubmit}>Хадгалах</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            Хадгалах
+          </Button>
         </DialogActions>
       </Dialog>
     </Paper>

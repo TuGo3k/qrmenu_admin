@@ -3,7 +3,6 @@ import React from "react";
 import Navbar from "@/components/Home/Navbar";
 import { CateDirect } from "@/utils/CateDirect";
 import ContentContainer from "@/utils/ContentContainer";
-
 import Table from "@/utils/Table"
 const page = () => {
   return (
