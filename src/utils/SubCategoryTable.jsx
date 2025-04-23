@@ -35,8 +35,8 @@ import deleteRequest from "./api/deleteRequest";
 const columns = [
   { id: "title", label: "Дэд Категорууд", minWidth: 170 },
   { id: "description", label: "Дэлгэрэнгүй", minWidth: 100 },
-  { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
-  { id: "image", label: "Зураг", minWidth: 170, align: "right" },
+  // { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
+  // { id: "image", label: "Зураг", minWidth: 170, align: "right" },
   { id: "category", label: "Ангилал", minWidth: 170, align: "right" },
 ];
 
@@ -47,21 +47,21 @@ export default function CustomTable() {
   const [category, setCategory] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteRowId, setDeleteRowId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteRowId, setDeleteRowId] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     category: "",
   });
   const [isLoading, setIsLoading] = useState(true);
-console.log(formData);
+  // console.log(formData);
   useEffect(() => {
     if (isLoading) {
       Promise.all([
         getRequest({
           route: `/subcategory/`,
           setValue: (data) => {
-            console.log(data)
+            console.log(data);
             const formatted = data.map((item) => ({
               ...item,
               // image: apiData.file_api_url + item.image,
@@ -95,9 +95,9 @@ console.log(formData);
     setFormData({
       title: "",
       description: "",
-      price: "",
-      image: null,
-      subcategory: "",
+      // price: "",
+      // image: null,
+      category: "",
     });
     setEditingId(null);
     setOpen(false);
@@ -121,7 +121,7 @@ console.log(formData);
         category: formData.category,
         // image: formData.image,
       };
-console.log(formData.category);
+      console.log(formData.category);
       // If editing, send PUT
       if (editingId) {
         await axios.put(`${apiData.api_url}/subcategory/${editingId}`, payload);
@@ -161,34 +161,38 @@ console.log(formData.category);
   // };
 
   const handleEdit = (row) => {
-    setFormData(row);
-    setEditingId(row.id);
+    setFormData({
+      title: row.title,
+      category: row.category,
+    });
+    // console.log("Row data:", row);
+    setEditingId(row._id);
     setOpen(true);
   };
 
-   const handleDeleteClick = (rowId) => {
-     console.log(rowId);
-     setDeleteRowId(rowId); // Store the row ID to delete
-     setDeleteModalOpen(true); // Open the modal
-   };
+  const handleDeleteClick = (rowId) => {
+    console.log(rowId);
+    setDeleteRowId(rowId); // Store the row ID to delete
+    setDeleteModalOpen(true); // Open the modal
+  };
 
-   const handleDeleteConfirm = async () => {
-     try {
-       await deleteRequest({
-         route: `/subcategory/${deleteRowId}`,
-         setIsLoading,
-       });
-       setDeleteModalOpen(false); // Close the modal
-       setDeleteRowId(null); // Clear the row ID
-       window.location.reload(); // Reload the page
-     } catch (error) {
-       console.error("Failed to delete the product:", error);
-     }
-   };
-   const handleDeleteCancel = () => {
-     setDeleteModalOpen(false); // Close the modal
-     setDeleteRowId(null); // Clear the row ID
-   };
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteRequest({
+        route: `/subcategory/${deleteRowId}`,
+        setIsLoading,
+      });
+      setDeleteModalOpen(false); // Close the modal
+      setDeleteRowId(null); // Clear the row ID
+      window.location.reload(); // Reload the page
+    } catch (error) {
+      console.error("Failed to delete the product:", error);
+    }
+  };
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false); // Close the modal
+    setDeleteRowId(null); // Clear the row ID
+  };
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", padding: 2 }}>
@@ -295,7 +299,7 @@ console.log(formData.category);
       </Dialog>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: "bold" }}>
-          Дэд категори нэмэх
+          {editingId ? "Дэд категори засах" : "Дэд категори нэмэх"}
         </DialogTitle>
         <DialogContent>
           <Box display="flex" flexDirection="column" gap={3} mt={1}>
@@ -310,7 +314,7 @@ console.log(formData.category);
               <InputLabel id="subcategory-label">Дэд ангилал</InputLabel>
               <Select
                 labelId="subcategory-label"
-                name="subcategory"
+                name="category"
                 value={formData.category}
                 onChange={handleInputChange}
                 fullWidth

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { IoCloudUpload } from "react-icons/io5";
 import { IoIosCloseCircleOutline } from "react-icons/io";
-import apiData from "./api/api";
+import apiData from "@/utils/api/api";
 
 const CustomImageUpload = ({
   value,
@@ -57,7 +57,7 @@ const CustomImageUpload = ({
   const handleRemoveIndexImage = () => {
     setIndexPreview(null);
   };
-  console.log(preview);
+  // console.log("preview", preview, "preview");
   return (
     <div className="w-full">
       <div className="flex items-center text-black">
@@ -95,7 +95,7 @@ const CustomImageUpload = ({
       )}
 
       {(preview || indexPreview) && (
-        <div className="mt-5 flex gap-4">
+        <div className="mt-5 flex-row flex gap-4">
           {preview && (
             <div className="relative">
               <img

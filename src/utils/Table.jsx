@@ -36,9 +36,9 @@ import axios from "axios";
 const columns = [
   { id: "title", label: "Нэр", minWidth: 170 },
   { id: "description", label: "Дэлгэрэнгүй", minWidth: 100 },
-  { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
-  { id: "image", label: "Зураг", minWidth: 170, align: "right" },
-  { id: "subcategory", label: "Дэд ангилал", minWidth: 170, align: "right" },
+  // { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
+  // { id: "image", label: "Зураг", minWidth: 170, align: "right" },
+  // { id: "subcategory", label: "Дэд ангилал", minWidth: 170, align: "right" },
   {
     id: "actions",
     headerName: "Үйлдэл",

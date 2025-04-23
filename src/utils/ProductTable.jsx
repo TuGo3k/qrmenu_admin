@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Button,
   Card,
@@ -34,7 +33,7 @@ const ProductTable = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [cover, setCover] = useState("");
-
+console.log(products)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -79,27 +78,32 @@ const ProductTable = () => {
       title: "",
       description: "",
       price: "",
-      cover: null,
+      cover: "",
       subcategory: "",
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "cover1") {
-      setFormData({ ...formData, cover: files[0] });
+    if (name === "cover") {
+      // setCover(files[0]);
+      setFormData({
+        ...formData,
+        cover: files[0],
+      });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
+  // console.log("form shvv", cover);
   const handleSubmit = async () => {
-    console.log(formData.cover, "cover image");
     const form = new FormData();
     form.append("title", formData.title);
     form.append("description", formData.description);
     form.append("price", formData.price);
     form.append("subcategory", formData.subcategory);
+
     if (cover && typeof cover !== "string") {
       form.append("file", cover);
     }
@@ -120,15 +124,18 @@ const ProductTable = () => {
   const handleEdit = (row) => {
     // console.log(row)
     const subcat = subTitles.find((item) => item.title === row.subcategory);
+
     setFormData({
       title: row.title,
       description: row.description,
       price: row.price,
-      cover: row.image,
+
       subcategory: subcat?._id || "",
     });
+    // setCover(row.cover);
     setEditingId(row.id);
     setOpen(true);
+    // console.log("FormData:", formData);
   };
 
   // const handleDelete = async (id) => {
@@ -163,27 +170,29 @@ const ProductTable = () => {
     setDeleteRowId(null); // Clear the row ID
   };
   const columns = [
-    { field: "id", headerName: "ID", width: 220 },
-    { field: "title", headerName: "Барааны нэр", width: 230 },
-    { field: "description", headerName: "Тайлбар", width: 250 },
-    { field: "price", headerName: "Үнэ", width: 150 },
-    { field: "subcategory", headerName: "Дэд ангилал", width: 200 },
+    { field: "index", headerName: "№", width: 50, maxWidth: 70 },
+    { field: "id", headerName: "ID", width: 220, maxWidth: 220 },
+    { field: "title", headerName: "Барааны нэр", width: 230, maxWidth: 250 },
+    { field: "description", headerName: "Тайлбар", width: 200, maxWidth: 250 },
+    { field: "price", headerName: "Үнэ", width: 150, maxWidth: 180 },
+    { field: "subcategory", headerName: "Дэд ангилал", width: 200, maxWidth: 220 },
     {
       field: "cover",
       headerName: "Зураг",
-      width: 250,
+      width: 200, maxWidth: 250,
+      align: "center",
       renderCell: (params) => (
         <img
           src={`${apiData.file_api_url}${params.value}`}
           alt="product"
-          style={{ maxHeight: 60 }}
+          style={{ maxHeight: 80,  objectFit: "contain", }}
         />
       ),
     },
     {
       field: "actions",
       headerName: "Үйлдэл",
-      width: 200,
+      width: 180, maxWidth: 200,
       renderCell: (params) => (
         <>
           <Button onClick={() => handleEdit(params.row)} color="primary">
@@ -200,7 +209,8 @@ const ProductTable = () => {
     },
   ];
 
-  const rows = products.map((product) => ({
+  const rows = products.map((product, index) => ({
+    index: index + 1,
     id: product._id,
     title: product.title,
     description: product.description,
@@ -210,6 +220,7 @@ const ProductTable = () => {
     cover: product.cover,
   }));
   // console.log(products)
+
   return (
     <Card>
       <CardHeader
@@ -227,7 +238,28 @@ const ProductTable = () => {
       />
       <CardContent>
         <div style={{ height: 500, width: "100%" }}>
-          <DataGrid rows={rows} columns={columns} pageSize={7} />
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            pageSize={7}
+            // getRowHeight={() => 80}
+            getRowHeight={(params) => {
+              // Example: Set a taller height for rows with long descriptions
+              // console.log(params.model.description)
+              if (
+                params.model.description &&
+                params.model.description.length > 50
+              ) {
+                return 100; // Taller height for long descriptions
+              }
+              return 80; // Default height
+            }}
+            sx={{
+              "& .MuiDataGrid-row": {
+                alignItems: "center", // Center content vertically
+              },
+            }}
+          />
         </div>
       </CardContent>
       <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
@@ -251,7 +283,9 @@ const ProductTable = () => {
 
       {/* Dialog Form */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? "Засах" : "Бүтээгдэхүүн нэмэх"}</DialogTitle>
+        <DialogTitle>
+          {editingId ? "Бүтээгдэхүүн засах" : "Бүтээгдэхүүн нэмэх"}
+        </DialogTitle>
 
         <DialogContent dividers>
           <TextField
@@ -306,12 +340,16 @@ const ProductTable = () => {
               onChange={handleInputChange}
             />
           </Button> */}
-          <CustomImageUpload
-            name={"cover"}
-            value={cover}
-            // onChangeLalar={setCover}
-            setValue={setCover}
-          />
+          <div className="w-full flex justify-start">
+            <div className="w-1/3 ">
+              <CustomImageUpload
+                name={"cover"}
+                value={cover}
+                // onChangeLalar={setCover}
+                setValue={setCover}
+              />
+            </div>
+          </div>
 
           {formData.cover &&
             (typeof formData.cover === "string" ? (
