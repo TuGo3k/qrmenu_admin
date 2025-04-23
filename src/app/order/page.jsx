@@ -1,7 +1,7 @@
 import React from "react";
 import MainContainer from "@/utils/MainContainer";
 import ContentContainer from "@/utils/ContentContainer";
-import OrderContainer from "@/components/Order/OrderTable";
+import OrderContainer from "@/components/Order/OrderCard";
 import Navbar from "@/components/Home/Navbar";
 import OrderTable from "@/utils/OrderTable";
 const page = () => {

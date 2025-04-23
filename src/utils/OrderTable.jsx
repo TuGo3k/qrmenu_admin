@@ -3,7 +3,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import React, { useState, useEffect } from "react";
-import OrderContainer from "@/components/Order/OrderTable";
+import OrderContainer from "@/components/Order/OrderCard";
 import {
   Button,
   Card,
@@ -21,6 +21,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
+import axios from "axios";
+import apiData from "@/data/apidata";
 const OrderTable = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,15 +30,26 @@ const OrderTable = () => {
   const [order, setOrder] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [totalfoodprice, setTotalFoodPrice] = useState(0);
 
-  //   const [formData, setFormData] = useState({
-  //     title: "",
-  //     description: "",
-  //     price: "",
-  //     subcategory: "",
-  //   });
+  const [deleteRowId, setDeleteRowId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    table: "",
+    products: [],
+    price: "",
+  });
 
   //   console.log(order, "order");
+useEffect(() => {
+  if (selectedOrder && selectedOrder.products && products.length > 0) {
+    const total = selectedOrder.products.reduce((sum, item) => {
+      const matched = products.find((p) => p._id === item.product);
+      return sum + (matched?.price || 0);
+    }, 0);
+    setTotalFoodPrice(total);
+  }
+}, [selectedOrder, products]);
 
   const handleClickOpen = () => {
     setEditingId(null);
@@ -51,33 +64,31 @@ const OrderTable = () => {
 
   useEffect(() => {
     if (isLoading) {
-    Promise.all([
+      Promise.all([
         getRequest({
-            route: "/order",
-            setValue: setOrder,
-            setIsLoading,
-            errorFunction: () => console.error("Failed to fetch data"),
-          }),
-          getRequest({
-            route: "/product",
-            setValue: setProducts,
-            setIsLoading,
-            errorFunction: () => console.error("Failed to fetch data"),
-          })
-    ])
+          route: "/order",
+          setValue: setOrder,
+          setIsLoading,
+          errorFunction: () => console.error("Failed to fetch data"),
+        }),
+        getRequest({
+          route: "/product",
+          setValue: setProducts,
+          setIsLoading,
+          errorFunction: () => console.error("Failed to fetch data"),
+        }),
+      ]);
     }
   }, [isLoading]);
-
+  console.log(selectedOrder, "orderorder");
   const handleEdit = (row) => {
     // console.log(row)
     const subcat = subTitles.find((item) => item.title === row.subcategory);
 
     setFormData({
       title: row.title,
-      description: row.description,
-      price: row.price,
 
-      subcategory: subcat?._id || "",
+      price: row.price,
     });
     // setCover(row.cover);
     setEditingId(row.id);
@@ -89,23 +100,43 @@ const OrderTable = () => {
     setOpen(false);
     setEditingId(null);
     setFormData({
-      title: "",
-      description: "",
+      table: "",
+      products: [],
       price: "",
-      cover: "",
-      subcategory: "",
     });
   };
-
+  console.log("table", typeof formData.table);
+  console.log("products", typeof formData.products);
+  console.log("price", typeof formData.price);
   const handleSubmit = async () => {
     const form = new FormData();
-    // form.append("title", formData.title);
+    form.append("table", formData.table);
+    // formData.products.forEach((productId, index) => {
+    //   form.append(`products[${index}]`, productId);
+    // });
 
+    form.append(
+      "products",
+      formData.products.map((id) => ({ product: id }))
+    );
+
+    form.append("price", formData.price);
+    // const form = [
+    //   {
+    //     table: formData.table,
+    //     products: [formData.products],
+    //     price: Number(formData.price),
+    //   },
+    // ];
     try {
       if (editingId) {
         await axios.put(`${apiData.api_url}/product/${editingId}`, form);
       } else {
-        await axios.post(`${apiData.api_url}/product`, form);
+        await axios.post(`${apiData.api_url}/order`, {
+          table: formData.table,
+          products: formData.products.map((id) => ({ product: id })),
+          price: formData.price,
+        });
       }
       handleClose();
       window.location.reload();
@@ -121,6 +152,39 @@ const OrderTable = () => {
     const filtered = order.find((pro) => pro._id === e.id);
     if (!filtered) return;
     setSelectedOrder(filtered);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // ///////---------УСТГАХ ХЭСЭГ------------//////////////
+  const handleDeleteClick = (rowId) => {
+    setDeleteRowId(rowId); // Store the row ID to delete
+    setDeleteModalOpen(true); // Open the modal
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteRequest({
+        route: `/order/${deleteRowId}`,
+        setIsLoading,
+      });
+      setDeleteModalOpen(false); // Close the modal
+      setDeleteRowId(null); // Clear the row ID
+      window.location.reload(); // Reload the page
+    } catch (error) {
+      console.error("Failed to delete the product:", error);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false); // Close the modal
+    setDeleteRowId(null); // Clear the row ID
   };
 
   const columns = [
@@ -161,8 +225,8 @@ const OrderTable = () => {
     {
       field: "actions",
       headerName: "Үйлдэл",
-      width: 250,
-      maxWidth: 250,
+      width: 350,
+      maxWidth: 350,
       renderCell: (params) => (
         <>
           <Button onClick={() => handleEdit(params.row)} color="primary">
@@ -176,12 +240,12 @@ const OrderTable = () => {
             Архивт хийх
           </Button>
 
-          {/* <Button
-            // onClick={() => handleDeleteClick(params.row.id)}
+          <Button
+            onClick={() => handleDeleteClick(params.id)}
             color="secondary"
           >
             Устгах
-          </Button> */}
+          </Button>
         </>
       ),
     },
@@ -262,17 +326,43 @@ const OrderTable = () => {
             <OrderContainer
               orderNumber={3}
               tableNumber={selectedOrder.table}
-              items={selectedOrder.products.map((el) => ({
-                name: el.product,
-                //   quantity: el.quantity,
-                price: el.price,
-                image: el.image || "",
-              }))}
+              items={selectedOrder.products.map((el) => {
+                const matchedProduct = products.find(
+                  (p) => p._id === el.product
+                );
+                return {
+                  name: matchedProduct?.title || "Unknown",
+                  price: matchedProduct?.price || 0,
+                  image: matchedProduct?.cover || "no-jpg",
+                };
+              })}
+              totalprice={totalfoodprice}
             />
           </div>
         </div>
       )}
 
+      {/* //////----------УСТГАХ ХЭСЭГ-----------/////// */}
+      <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Баталгаажуулалт</DialogTitle>
+        <DialogContent>
+          Та энэ мөрийг устгахдаа итгэлтэй байна уу?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Болих
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="secondary"
+            variant="contained"
+          >
+            Устгах
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* //////------ЗАХИАЛГА ҮҮСГЭХ ХЭСЭГ------/////// */}
       <Dialog
         open={open}
         // onClose={handleClose}
@@ -281,58 +371,94 @@ const OrderTable = () => {
       >
         <DialogTitle>{"Захиалга үүсгэх"}</DialogTitle>
         <FormControl fullWidth margin="dense">
-        <InputLabel id="subcategory-label">ширээ сонго</InputLabel>
-        <Select
-          labelId="subcategory-label"
-          name="table"
-          value={order.table}
-          // onChange={handleInputChange}
-          fullWidth
-        >
-          {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
-            <MenuItem key={num} value={num}>
-              {num}
-            </MenuItem>
-          ))}
-        </Select>
+          <InputLabel id="subcategory-label">ширээ сонго</InputLabel>
+          <Select
+            labelId="subcategory-label"
+            name="table"
+            value={formData.table}
+            onChange={handleInputChange}
+            fullWidth
+          >
+            {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
+              <MenuItem key={num} value={num}>
+                {num}
+              </MenuItem>
+            ))}
+          </Select>
         </FormControl>
         <DialogContent dividers>
-          <TextField
-            margin="dense"
-            name="title"
-            label="Гарчиг"
-            //   value={formData.title}
-            //   onChange={handleInputChange}
-            fullWidth
-          />
-
-       
-
           <FormControl fullWidth margin="dense">
             <InputLabel id="subcategory-label">Хоолоо сонгоно уу</InputLabel>
             <Select
               labelId="subcategory-label"
-              name="subcategory"
-              // value={formData.subcategory}
-              // onChange={handleInputChange}
+              name="products"
+              value={formData.products}
+              onChange={
+                (e) => {
+                  const selectedProductIds = e.target.value;
+
+                  const selectedProducts = products.filter((product) =>
+                    selectedProductIds.includes(product._id)
+                  );
+
+                  const totalfoodprice = selectedProducts.reduce(
+                    (total, product) => total + product.price,
+                    0
+                  );
+
+                  setFormData({
+                    ...formData,
+                    products: selectedProductIds,
+                    price: totalfoodprice,
+                  });
+                  
+                }
+
+                // setFormData({
+                //   ...formData,
+                //   products: e.target.value,
+                // })
+              }
+              multiple
               fullWidth
             >
               {products.map((el) => (
-                      <MenuItem key={el._id} value={el._id}>
-                        {el.title}
-                      </MenuItem>
-                    ))}
+                <MenuItem key={el._id} value={el._id}>
+                  {el.title}
+                </MenuItem>
+              ))}
             </Select>
+            <Typography variant="h6" sx={{ mt: 2 }}>
+              Нийт үнэ: {formData.price.toLocaleString()}₮
+            </Typography>
           </FormControl>
-          <TextField
+          {/* <TextField
             margin="dense"
             name="price"
             label="Үнэ"
+            disabled
             type="number"
-            //   value={formData.price}
-            //   onChange={handleInputChange}
+            value={formData.price}
+            // onChange={(e) => {
+            //   const selectedProductIds = e.target.value;
+
+            //   const selectedProducts = products.filter((product) =>
+            //     selectedProductIds.includes(product._id)
+            //   );
+
+            //   const totalfoodprice = selectedProducts.reduce(
+            //     (total, product) => total + product.price,
+            //     0
+            //   );
+
+            //   setFormData({
+            //     ...formData,
+            //     products: selectedProductIds,
+            //     price: totalfoodprice,
+            //   });
+            // }}
             fullWidth
-          />
+          /> */}
           {/* <Button variant="outlined" component="label" sx={{ mt: 2 }}>
                   Зураг сонгох
                   <input
@@ -345,11 +471,7 @@ const OrderTable = () => {
                 </Button> */}
         </DialogContent>
         <DialogActions>
-          <Button
-          // onClick={handleClose}
-          >
-            Болих
-          </Button>
+          <Button onClick={handleClose}>Болих</Button>
           <Button onClick={handleSubmit} variant="contained">
             Хадгалах
           </Button>
