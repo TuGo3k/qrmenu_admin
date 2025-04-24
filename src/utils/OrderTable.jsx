@@ -4,6 +4,7 @@ import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import React, { useState, useEffect } from "react";
 import OrderContainer from "@/components/Order/OrderCard";
+import dayjs from "dayjs";
 import {
   Button,
   Card,
@@ -192,63 +193,69 @@ useEffect(() => {
     // { field: "products", headerName: "", width: 200, maxWidth: 250 },
     // { field: "price", headerName: "Үнэ", width: 150, maxWidth: 180 },
 
-    { field: "index", headerName: "№", width: 50, maxWidth: 70 },
+    {
+      field: "index",
+      headerName: "№",
+      flex: 0,
+      align: "center",
+      headerAlign: "center",
+      width: 50
+    },
     {
       field: "table",
       headerName: "Ширээний дугаар",
-      width: 200,
-      maxWidth: 250,
+      flex: 2,
     },
     {
       field: "isPaid",
       headerName: "Төлөв",
-      width: 180,
-      maxWidth: 200,
-      valueGetter: (params) => (params ? "Төлөгдөөгүй" : "Төлөгдсөн"),
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <span style={{ color: params.value ? "green" : "red" }}>
+          {params.value ? "Төлөгдсөн" : "Төлөгдөөгүй"}
+        </span>
+      ),
+    },
+    {field: "createdAt",
+      headerName: "Огноо",
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "detail",
       headerName: "Дэлгэрэнгүй",
-      width: 140,
-      maxWidth: 150,
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <>
-          <button
-            onClick={() => detail(params.row)}
-            className="p-2 bg-white text-black"
-          >
-            Дэлгэрэнгүй
-          </button>
-        </>
+        <span
+          onClick={() => detail(params.row)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+        >
+          Дэлгэрэнгүй
+        </span>
       ),
-    },
-    {
-      field: "actions",
-      headerName: "Үйлдэл",
-      width: 350,
-      maxWidth: 350,
-      renderCell: (params) => (
-        <>
-          <Button onClick={() => handleEdit(params.row)} color="primary">
-            Засах
-          </Button>
-
-          <Button
-            //   onClick={() => handleEdit(params.row)}
-            color="primary"
-          >
-            Архивт хийх
-          </Button>
-
-          <Button
-            onClick={() => handleDeleteClick(params.id)}
-            color="secondary"
-          >
-            Устгах
-          </Button>
-        </>
-      ),
-    },
+    },  
+    // {
+    //   field: "actions",
+    //   headerName: "Үйлдэл",
+    //   flex: 3,
+    //   renderCell: (params) => (
+    //     <>
+    //       <Button onClick={() => handleEdit(params.row)} color="primary">
+    //         Засах
+    //       </Button>
+    //       <Button color="primary">Архивт хийх</Button>
+    //       <Button onClick={() => handleDeleteClick(params.id)} color="secondary">
+    //         Устгах
+    //       </Button>
+    //     </>
+    //   ),
+    // }
+    
   ];
 
   const rows = order.map((order, index) => ({
@@ -256,8 +263,8 @@ useEffect(() => {
     index: index + 1,
     table: order.table,
     isPaid: order.isPaid,
+    createdAt: dayjs(order.createdAt).format("YYYY-MM-DD HH:mm"),
     price: order.price,
-    createdAt: order.createdAt,
     // subcategory:
     //   subTitles.find((item) => item._id === product.subcategory)?.title || "",
     // cover: product.cover,
@@ -278,7 +285,7 @@ useEffect(() => {
         }
       />
       <CardContent>
-        <div style={{ height: 500, width: "100%" }}>
+        <div className="w-full h-screen">
           <DataGrid
             rows={rows}
             columns={columns}
