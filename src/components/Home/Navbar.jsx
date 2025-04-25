@@ -5,10 +5,12 @@ import { IoIosCloseCircleOutline } from "react-icons/io";
 import { IoMenu } from "react-icons/io5";
 // import MobileSidebar from './MobileSidebar';
 import { IoSearchOutline } from "react-icons/io5";
+import { useAuth } from '@/components/Context/AuthProvider';
 const Navbar = ({ title }) => {
     const [isInfo, setIsInfo] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-
+    const { logout } = useAuth()
+    const user = JSON.parse(window.localStorage.getItem("suser"))
     return (
         <div className='w-full bg-[var(--maincolor)] px-5 flex justify-between top-0 items-center py-3
         max-md:fixed max-md:w-screen'>
@@ -36,10 +38,11 @@ const Navbar = ({ title }) => {
                     </div>
                     <img className='w-7 h-7 object-cover' src="/assets/navbar/bell.svg" alt="" />
                     <div onClick={() => setIsInfo(!isInfo)} className='cursor-pointer flex justify-center items-center gap-3 px-2 relative'>
-                        <img className='w-8 h-8 rounded-full'
-                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcO3j2tUuDNPplkoV8lD6LmHBU0qyJgvt1Sw&s" alt="" />
+                       {user.name}
                         {!isInfo ? <IoIosArrowDown size={25} onClick={() => setIsInfo(true)} /> : <IoIosCloseCircleOutline size={25} onClick={() => setIsInfo(false)} />}
-                        {isInfo && <div className="absolute duration-300 transition-all top-0 right-0 bg-white custom-shadow rounded-lg h-10 w-15/5 mt-12">
+                        {isInfo && <div  className="absolute duration-300 transition-all top-0 right-0 bg-white custom-shadow rounded-lg h-10 w-30 mt-12 p-2 z-30">
+                        
+                        <div onClick={logout} className='w-full '>Гарах</div>
                         </div>}
                     </div>
                 </div>

@@ -172,10 +172,10 @@ console.log(products)
   const columns = [
     { field: "index", headerName: "№", width: 50, maxWidth: 70 },
     { field: "id", headerName: "ID", width: 220, maxWidth: 220 },
-    { field: "title", headerName: "Барааны нэр", width: 230, maxWidth: 250 },
-    { field: "description", headerName: "Тайлбар", width: 200, maxWidth: 250 },
-    { field: "price", headerName: "Үнэ", width: 150, maxWidth: 180 },
-    { field: "subcategory", headerName: "Дэд ангилал", width: 200, maxWidth: 220 },
+    { field: "title", headerName: "Барааны нэр", flex: 1, maxWidth: 250 },
+    { field: "description", headerName: "Тайлбар", flex: 1, maxWidth: 250 },
+    { field: "price", headerName: "Үнэ", flex: 1, maxWidth: 180 },
+    { field: "subcategory", headerName: "Дэд ангилал", flex: 1, maxWidth: 220 },
     {
       field: "cover",
       headerName: "Зураг",

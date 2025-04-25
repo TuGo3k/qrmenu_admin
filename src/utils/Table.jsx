@@ -195,7 +195,7 @@ export default function CustomTable() {
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
-              <TableCell align="center">№</TableCell>
+              <TableCell width={10} align="center">№</TableCell>
               {columns.map((column) => (
                 <TableCell
                   key={column.id}

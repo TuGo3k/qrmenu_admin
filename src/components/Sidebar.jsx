@@ -10,7 +10,7 @@ const Sidebar = () => {
   const pathName = usePathname();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedMenu, setSelectedMenu] = useState("");
-
+  const user = JSON.parse(localStorage.getItem("suser"))
   return (
     <div
       style={{ background: "var(--maincolor)" }}
@@ -29,7 +29,7 @@ const Sidebar = () => {
 
         <div className="flex w-full flex-col gap-3 transition-opacity duration-300">
           <h2 className="font-semibold text-sm text-black font-sans">
-            Template
+            {user.name}
           </h2>
         </div>
       </div>

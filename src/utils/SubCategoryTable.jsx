@@ -35,8 +35,6 @@ import deleteRequest from "./api/deleteRequest";
 const columns = [
   { id: "title", label: "Дэд Категорууд", minWidth: 170 },
   { id: "description", label: "Дэлгэрэнгүй", minWidth: 100 },
-  // { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
-  // { id: "image", label: "Зураг", minWidth: 170, align: "right" },
   { id: "category", label: "Ангилал", minWidth: 170, align: "right" },
 ];
 
@@ -206,7 +204,7 @@ export default function CustomTable() {
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
-              <TableCell align="center">№</TableCell>
+              <TableCell width={10} align="center">№</TableCell>
               {columns.map((column) => (
                 <TableCell
                   key={column.id}
