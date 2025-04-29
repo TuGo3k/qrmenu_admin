@@ -1,36 +1,30 @@
 "use client";
 import { useState } from "react";
 import { Eye, Mail, Phone, User } from "lucide-react";
-import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/Context/AuthProvider";
 import Particles from "@/utils/reactbits/Particles";
 
 export default function Page() {
-    const [email, setEmail] = useState('');
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [password, setPassword] = useState('');
     const router = useRouter();
     const { register } = useAuth();
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-    
-        const data = {
-            name,
-            email,
-            phone,
-            password,
-            deviceIdentityInfo: navigator.userAgent,
-        };
-        router.push('/auth/login')
-        register(data);
-        console.log(data);
+    const [form, setForm] = useState({
+      name: "",
+      email: "",
+      password: "",
+      phone: "",
+    });
+  
+    const handleChange = (e) => {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    };
+  
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      await register(form);
     };
     
     const slides = [
@@ -56,7 +50,6 @@ export default function Page() {
 
     return (
         <div className="flex justify-center w-full gap-10 items-center max-md:p-0 min-h-screen px-0 py-10 bg-black relative">
-            {/* Left side swiper */}
             <div className="absolute h-screen w-full top-0">
         <Particles
           particleColors={["#ffffff", "#ffffff"]}
@@ -70,17 +63,17 @@ export default function Page() {
         />
       </div>
 
-            {/* Right side form */}
             <form
                 onSubmit={handleSubmit}
-                // style={{ background: 'var(--maincolor)' }}
                 className="w-[40%] lg:w-md h-screen lg:h-full max-md:w-full space-y-6 px-12 lg:rounded-lg shadow-md  text-white flex flex-col justify-center z-10"
             >
                 <h2 className="text-center text-3xl font-bold my-12">Бүртгүүлэх</h2>
                 <div className="flex flex-col">
                     <div className="flex relative mb-4">
                         <input
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={handleChange}
+                            value={form.name}
+                            name="name"
                             className="focus:outline-none w-full bg-white/40 text-white p-4 pr-10 border border-black/50 rounded-md placeholder:text-accent-400"
                             placeholder="Нэвтрэх нэр"
                         />
@@ -89,7 +82,9 @@ export default function Page() {
                     <div className="flex relative mb-4">
                         <input
                             type="email"
-                            onChange={(e) => setEmail(e.target.value)}
+                            name="email"
+                            onChange={handleChange}
+                            value={form.email}
                             className="focus:outline-none w-full bg-white/40 text-white p-4 pr-10 border border-black/50 rounded-md placeholder:text-accent-400"
                             placeholder="И-мэйл оруулах"
                         />
@@ -98,7 +93,9 @@ export default function Page() {
                     <div className="flex relative mb-4">
                         <input
                             type="text"
-                            onChange={(e) => setPhone(e.target.value)}
+                            name="phone"
+                            onChange={handleChange}
+                            value={form.phone}
                             className="focus:outline-none w-full bg-white/40 text-white p-4 pr-10 border border-black/50 rounded-md placeholder:text-accent-400"
                             placeholder="Утасны дугаар"
                         />
@@ -107,7 +104,9 @@ export default function Page() {
                     <div className="flex relative">
                         <input
                             type="password"
-                            onChange={(e) => setPassword(e.target.value)}
+                            name="password"
+                            value={form.password}
+                            onChange={handleChange}
                             className="focus:outline-none w-full bg-white/40 text-white p-4 pr-10 border border-black/50 rounded-md placeholder:text-accent-400"
                             placeholder="Нууц үг"
                         />

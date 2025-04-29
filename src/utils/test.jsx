@@ -54,13 +54,13 @@ export default function CustomTable() {
     if (isLoading) {
       Promise.all([
         getRequest({
-          route: /subcategory,
+          route: '/subcategory',
           setValue: setSubTitles,
           errorFunction: () => console.error("Failed to fetch data"),
         }),
 
         getRequest({
-          route: /product,
+          route: '/product',
           setValue: setProducts,
           // setIsLoading,
           errorFunction: () => console.error("Failed to fetch data"),
@@ -131,11 +131,11 @@ export default function CustomTable() {
 
       // Check if editing or creating a new product
       if (editingId) {
-        await axios.put(${apiData.api_url}/product/${editingId}, form, {
+        await axios.put(`${apiData.api_url}/product/${editingId}`, form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await axios.post(${apiData.api_url}/product, form, {
+        await axios.post(`${apiData.api_url}/product`, form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
@@ -186,7 +186,7 @@ export default function CustomTable() {
     // console.log("Product ID:", row.id); // Log the product ID to verify
     if (window.confirm("Та энэ мөрийг устгахдаа итгэлтэй байна уу?")) {
       deleteRequest({
-        route: /product/${row.id}, // Use the product ID in the API route
+        route: `/product/${row.id}`, // Use the product ID in the API route
         successFunction: () => {
           setRowsData((prevData) =>
             prevData.filter((item) => item.id !== row.id)
@@ -239,7 +239,7 @@ export default function CustomTable() {
                       <TableCell key={column.id} align={column.align}>
                         {column.id === "image" && value ? (
                           <img
-                            src={${apiData.file_api_url}${value}}
+                            src={`${apiData.file_api_url}${value}`}
                             alt="preview"
                             style={{ maxHeight: 100, float: "right" }}
                           />

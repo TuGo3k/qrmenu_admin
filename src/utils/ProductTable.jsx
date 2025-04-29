@@ -86,7 +86,6 @@ console.log(products)
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "cover") {
-      // setCover(files[0]);
       setFormData({
         ...formData,
         cover: files[0],
@@ -96,8 +95,7 @@ console.log(products)
     }
   };
 
-  // console.log("form shvv", cover);
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     const form = new FormData();
     form.append("title", formData.title);
     form.append("description", formData.description);
@@ -122,7 +120,6 @@ console.log(products)
   };
 
   const handleEdit = (row) => {
-    // console.log(row)
     const subcat = subTitles.find((item) => item.title === row.subcategory);
 
     setFormData({
@@ -132,23 +129,12 @@ console.log(products)
 
       subcategory: subcat?._id || "",
     });
-    // setCover(row.cover);
     setEditingId(row.id);
     setOpen(true);
-    // console.log("FormData:", formData);
   };
-
-  // const handleDelete = async (id) => {
-  //   try {
-  //     await axios.delete(`${apiData.product_api_url}${id}`);
-  //     fetchData();
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
   const handleDeleteClick = (rowId) => {
-    setDeleteRowId(rowId); // Store the row ID to delete
-    setDeleteModalOpen(true); // Open the modal
+    setDeleteRowId(rowId); 
+    setDeleteModalOpen(true); 
   };
 
   const handleDeleteConfirm = async () => {
@@ -157,17 +143,17 @@ console.log(products)
         route: `/product/${deleteRowId}`,
         setIsLoading,
       });
-      setDeleteModalOpen(false); // Close the modal
-      setDeleteRowId(null); // Clear the row ID
-      window.location.reload(); // Reload the page
+      setDeleteModalOpen(false); 
+      setDeleteRowId(null); 
+      window.location.reload(); 
     } catch (error) {
       console.error("Failed to delete the product:", error);
     }
   };
 
   const handleDeleteCancel = () => {
-    setDeleteModalOpen(false); // Close the modal
-    setDeleteRowId(null); // Clear the row ID
+    setDeleteModalOpen(false);
+    setDeleteRowId(null); 
   };
   const columns = [
     { field: "index", headerName: "№", width: 50, maxWidth: 70 },
@@ -219,7 +205,6 @@ console.log(products)
       subTitles.find((item) => item._id === product.subcategory)?.title || "",
     cover: product.cover,
   }));
-  // console.log(products)
 
   return (
     <Card>
@@ -242,21 +227,18 @@ console.log(products)
             rows={rows}
             columns={columns}
             pageSize={7}
-            // getRowHeight={() => 80}
             getRowHeight={(params) => {
-              // Example: Set a taller height for rows with long descriptions
-              // console.log(params.model.description)
               if (
                 params.model.description &&
                 params.model.description.length > 50
               ) {
-                return 100; // Taller height for long descriptions
+                return 100; 
               }
-              return 80; // Default height
+              return 80; 
             }}
             sx={{
               "& .MuiDataGrid-row": {
-                alignItems: "center", // Center content vertically
+                alignItems: "center", 
               },
             }}
           />
@@ -281,7 +263,6 @@ console.log(products)
         </DialogActions>
       </Dialog>
 
-      {/* Dialog Form */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>
           {editingId ? "Бүтээгдэхүүн засах" : "Бүтээгдэхүүн нэмэх"}
@@ -330,22 +311,11 @@ console.log(products)
               ))}
             </Select>
           </FormControl>
-          {/* <Button variant="outlined" component="label" sx={{ mt: 2 }}>
-            Зураг сонгох
-            <input
-              type="file"
-              name="cover"
-              hidden
-              accept="image/*"
-              onChange={handleInputChange}
-            />
-          </Button> */}
           <div className="w-full flex justify-start">
             <div className="w-1/3 ">
               <CustomImageUpload
                 name={"cover"}
                 value={cover}
-                // onChangeLalar={setCover}
                 setValue={setCover}
               />
             </div>

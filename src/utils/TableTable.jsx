@@ -1,36 +1,25 @@
 "use client";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-  CircularProgress,
-} from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import apiData from "@/data/apidata";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add } from "@mui/icons-material";
+import { Button, Card, CardContent, CardHeader, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
 import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
+import QrSeeModal from "./qrview/SeeQrModal"; 
+import { useAuth } from "@/components/Context/AuthProvider";
 
 const ProductTable = () => {
   const [tables, setTables] = useState([]);
   const [open, setOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isQr, setIsQr] = useState(false);  
+  const [formData, setFormData] = useState({ title: "" });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
-
-  const [formData, setFormData] = useState({
-    title: "",
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isLoading) {
@@ -44,46 +33,40 @@ const ProductTable = () => {
   }, [isLoading]);
 
   const handleClickOpen = () => {
-    setEditingId(null);
     setFormData({ title: "" });
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setEditingId(null);
+    setIsQr(false); 
     setFormData({ title: "" });
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
   const handleSubmit = async () => {
-    if (!formData.title) {
+    if (!formData.title?.trim()) {
       alert("Гарчиг оруулна уу");
       return;
     }
-
-    // const form = new FormData();
-    // form.append("number", formData.title);
-
+    setIsLoading(true);
     try {
-      await axios.post(`${apiData.api_url}/table`, {
-        number: formData.title,
-      });
-      handleClose();
-      setIsLoading(true); // Refetch data
-    } catch (err) {
-      console.error(err);
-    }
-  };
+      const postData = {
+        number: formData.title.trim(),
+      };
 
-  const handleEdit = (row) => {
-    setFormData({ title: row.title });
-    setEditingId(row.id);
-    setOpen(true);
+      if (user?.role === "merchant") {
+        postData.merchantId = user._id;
+      }
+      const response = await axios.post(`${apiData.api_url}/table`, postData);
+      console.log("Ширээ амжилттай нэмэгдлээ.", response.data);
+      handleClose();
+      setIsLoading(true); 
+    } catch (error) {
+      console.error("Хүсэлт илгээхэд алдаа гарлаа:", error);
+      alert("Алдаа гарлаа. Дахин оролдоно уу.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteClick = (rowId) => {
@@ -114,15 +97,24 @@ const ProductTable = () => {
     { field: "index", headerName: "№", width: 50 },
     { field: "id", headerName: "ID", width: 220 },
     { field: "title", headerName: "Гарчиг", flex: 1 },
+    { field: "merchantId", headerName: "MerchantId", flex: 1 },
     {
       field: "actions",
       headerName: "Үйлдэл",
       width: 200,
       renderCell: (params) => (
         <>
-          {/* <Button onClick={() => handleEdit(params.row)} color="primary">
-            Засах
-          </Button> */}
+          <Button
+            onClick={() => {
+              setSelectedTable({
+                id: params.row.id,
+                merchantId: params.row.merchantId,
+              });
+              setIsQr(true);
+            }}
+          >
+            QR Код харах
+          </Button>
           <Button
             onClick={() => handleDeleteClick(params.row.id)}
             color="secondary"
@@ -138,6 +130,7 @@ const ProductTable = () => {
     index: index + 1,
     id: table._id,
     title: table.name,
+    merchantId: table.merchantId || "-", 
   }));
 
   return (
@@ -175,7 +168,14 @@ const ProductTable = () => {
         )}
       </CardContent>
 
-      {/* Delete Confirmation Dialog */}
+      {isQr && selectedTable && (
+        <QrSeeModal
+          closeModal={handleClose}
+          tableId={selectedTable.id}
+          merchantId={selectedTable.merchantId}
+        />
+      )}
+
       <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
         <DialogTitle>Баталгаажуулалт</DialogTitle>
         <DialogContent>
@@ -195,17 +195,16 @@ const ProductTable = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? "Ширээ засах" : "Ширээ нэмэх"}</DialogTitle>
+        <DialogTitle>Ширээ нэмэх</DialogTitle>
         <DialogContent dividers>
           <TextField
-            type="number" // 👉 зөвхөн тоо оруулах
+            type="number" 
             margin="dense"
             name="title"
             label="Тоо оруулна уу"
             value={formData.title}
-            onChange={handleInputChange}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             fullWidth
           />
         </DialogContent>

@@ -3,14 +3,17 @@ import sidebardata from "@/data/sidebardata";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
-import { IoIosMenu } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
+import { useAuth } from "./Context/AuthProvider";
+
 
 const Sidebar = () => {
   const pathName = usePathname();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedMenu, setSelectedMenu] = useState("");
-  const user = JSON.parse(localStorage.getItem("suser"))
+  const { user } = useAuth()
+
+
   return (
     <div
       style={{ background: "var(--maincolor)" }}
@@ -28,9 +31,9 @@ const Sidebar = () => {
         />
 
         <div className="flex w-full flex-col gap-3 transition-opacity duration-300">
-          <h2 className="font-semibold text-sm text-black font-sans">
-            {user.name}
-          </h2>
+        <h2 className="font-semibold text-sm text-black font-sans">
+          {user ? user.name : "Guest"}
+        </h2>
         </div>
       </div>
 
