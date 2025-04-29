@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { Category } from "@mui/icons-material";
 export const CateDirect = () => {
-    const pathname = usePathname()
-    const title = pathname.split('/').filter(Boolean)[0]; // removes empty "" and gives "dashboard"
-    let translatedTitle = "Тодорхойгүй";
+  const pathname = usePathname()
+  const title = pathname.split('/').filter(Boolean)[0]; 
+  let translatedTitle = "Тодорхойгүй";
   switch (title) {
     case "category":
       translatedTitle = "Ангилал";
@@ -22,7 +22,7 @@ export const CateDirect = () => {
       translatedTitle = "Захиалга";
       break;
   }
-    
+
   return (
     <div
       className="w-full py-5 px-5 flex justify-between top-0 items-center 
@@ -32,7 +32,7 @@ export const CateDirect = () => {
         <Link href="/" className="hover:underline hover:text-blue-600">
           Нүүр
         </Link>
-        <span><MdOutlineKeyboardArrowRight size={20}/></span>
+        <span><MdOutlineKeyboardArrowRight size={20} /></span>
         <Link href={`/${title}`} className="hover:underline text-blue-600 hover:text-blue-600">
           {translatedTitle}
         </Link>

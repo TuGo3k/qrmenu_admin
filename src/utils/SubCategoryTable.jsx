@@ -19,23 +19,20 @@ import {
   TextField,
   Box,
   FormControl,
-  Card,
-  CardContent,
-  CardHeader,
   InputLabel,
   MenuItem,
   Select,
-  Typography,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import getRequest from "./api/getRequest";
 import apiData from "@/data/apidata";
 import axios from "axios";
 import deleteRequest from "./api/deleteRequest";
+import { useAuth } from "@/components/Context/AuthProvider";
 const columns = [
-  { id: "title", label: "Дэд Категорууд", minWidth: 170 },
-  { id: "description", label: "Дэлгэрэнгүй", minWidth: 100 },
-  { id: "category", label: "Ангилал", minWidth: 170, align: "right" },
+  { id: "title", label: "Дэд Категорууд" },
+  { id: "category", label: "Ангилал" },
+  { id: "image", label: "Зураг" ,align: "right"},
 ];
 
 export default function CustomTable() {
@@ -47,12 +44,13 @@ export default function CustomTable() {
   const [editingId, setEditingId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
+  const {user} = useAuth()
   const [formData, setFormData] = useState({
     title: "",
     category: "",
+    image: ""
   });
   const [isLoading, setIsLoading] = useState(true);
-  // console.log(formData);
   useEffect(() => {
     if (isLoading) {
       Promise.all([
@@ -62,9 +60,6 @@ export default function CustomTable() {
             console.log(data);
             const formatted = data.map((item) => ({
               ...item,
-              // image: apiData.file_api_url + item.image,
-              // title: item,
-              // category: item,
             }));
             setRowsData(formatted);
           },
@@ -93,8 +88,6 @@ export default function CustomTable() {
     setFormData({
       title: "",
       description: "",
-      // price: "",
-      // image: null,
       category: "",
     });
     setEditingId(null);
@@ -114,13 +107,9 @@ export default function CustomTable() {
     try {
       const payload = {
         title: formData.title,
-        // description: formData.description,
-        // price: formData.price,
         category: formData.category,
-        // image: formData.image,
       };
       console.log(formData.category);
-      // If editing, send PUT
       if (editingId) {
         await axios.put(`${apiData.api_url}/subcategory/${editingId}`, payload);
       } else {
@@ -134,44 +123,19 @@ export default function CustomTable() {
     }
   };
 
-  // const handleSubmit = () => {
-  //   const updatedRow = {
-  //     id: editingId || Date.now() + Math.random(),
-  //     title: formData.title,
-  //     description: formData.description,
-  //     price: formData.price,
-  //     image:
-  //       formData.image && typeof formData.image === "object"
-  //         ? URL.createObjectURL(formData.image)
-  //         : formData.image,
-  //     subcategory: formData.subcategory,
-  //   };
-
-  //   if (editingId) {
-  //     setRowsData((prevData) =>
-  //       prevData.map((row) => (row.id === editingId ? updatedRow : row))
-  //     );
-  //   } else {
-  //     setRowsData((prevData) => [...prevData, updatedRow]);
-  //   }
-
-  //   handleClose();
-  // };
-
   const handleEdit = (row) => {
     setFormData({
       title: row.title,
       category: row.category,
     });
-    // console.log("Row data:", row);
     setEditingId(row._id);
     setOpen(true);
   };
 
   const handleDeleteClick = (rowId) => {
     console.log(rowId);
-    setDeleteRowId(rowId); // Store the row ID to delete
-    setDeleteModalOpen(true); // Open the modal
+    setDeleteRowId(rowId);
+    setDeleteModalOpen(true); 
   };
 
   const handleDeleteConfirm = async () => {
@@ -180,25 +144,27 @@ export default function CustomTable() {
         route: `/subcategory/${deleteRowId}`,
         setIsLoading,
       });
-      setDeleteModalOpen(false); // Close the modal
-      setDeleteRowId(null); // Clear the row ID
-      window.location.reload(); // Reload the page
+      setDeleteModalOpen(false); 
+      setDeleteRowId(null); 
+      window.location.reload(); 
     } catch (error) {
       console.error("Failed to delete the product:", error);
     }
   };
   const handleDeleteCancel = () => {
-    setDeleteModalOpen(false); // Close the modal
-    setDeleteRowId(null); // Clear the row ID
+    setDeleteModalOpen(false);
+    setDeleteRowId(null); 
   };
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", padding: 2 }}>
       <Box display="flex" justifyContent="space-between" mb={2}>
         <h2>Категори жагсаалт</h2>
+        {user?.role=== 'merchant' ? (
         <Button variant="contained" onClick={handleOpen}>
           + Категори нэмэх
         </Button>
+        ) : null}
       </Box>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
@@ -209,12 +175,13 @@ export default function CustomTable() {
                 <TableCell
                   key={column.id}
                   align={column.align}
-                  style={{ minWidth: column.minWidth }}
                 >
                   {column.label}
                 </TableCell>
               ))}
-              <TableCell align="center">Үйлдэл</TableCell>
+            {user?.role=== 'merchant' ? (
+              <TableCell align="right">Үйлдэл</TableCell>
+            ) : null}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -228,7 +195,6 @@ export default function CustomTable() {
                   {columns.map((column) => {
                     let value = row[column.id];
 
-                    // If the column is "category", map the category ID to its title
                     if (column.id === "category" && value) {
                       const categoryObj = category.find(
                         (cat) => cat._id === value
@@ -252,7 +218,11 @@ export default function CustomTable() {
                       </TableCell>
                     );
                   })}
-                  <TableCell align="center">
+                  <TableCell align="right">
+                    <img src={row.file && apiData.file_api_url + row.file} alt="file" className="w-20 h-20"/>
+                  </TableCell>
+                  {user?.role=== 'merchant' ? (
+                  <TableCell align="right">
                     <IconButton color="primary" onClick={() => handleEdit(row)}>
                       <RiEdit2Fill />
                     </IconButton>
@@ -263,6 +233,7 @@ export default function CustomTable() {
                       <RiDeleteBin6Fill />
                     </IconButton>
                   </TableCell>
+                   ) : null}
                 </TableRow>
               ))}
           </TableBody>

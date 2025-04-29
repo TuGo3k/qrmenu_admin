@@ -29,7 +29,7 @@ const QrSeeModal = ({ closeModal, tableId, merchantId }) => {
     img.src = url;
   };
 
-  const qrUrl = `http://192.168.1.36:3000/table/${tableId}/${merchantId}`;
+  const qrUrl = `http://192.168.1.98:3000/table/${tableId}/${merchantId}`;
 
   return (
     <div className="blur_container">

@@ -23,6 +23,7 @@ import { Add } from "@mui/icons-material";
 import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import CustomImageUpload from "./CustomImageUpload";
+import { useAuth } from "@/components/Context/AuthProvider";
 
 const ProductTable = () => {
   const [products, setProducts] = useState([]);
@@ -33,6 +34,7 @@ const ProductTable = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [cover, setCover] = useState("");
+  const { user } = useAuth()
 console.log(products)
   const [formData, setFormData] = useState({
     title: "",
@@ -107,11 +109,13 @@ console.log(products)
     }
 
     try {
+      if(user.role === "merchant") {
       if (editingId) {
         await axios.put(`${apiData.api_url}/product/${editingId}`, form);
       } else {
         await axios.post(`${apiData.api_url}/product`, form);
       }
+    }
       handleClose();
       window.location.reload();
     } catch (err) {
@@ -155,7 +159,7 @@ console.log(products)
     setDeleteModalOpen(false);
     setDeleteRowId(null); 
   };
-  const columns = [
+  const baseColumns  = [
     { field: "index", headerName: "№", width: 50, maxWidth: 70 },
     { field: "id", headerName: "ID", width: 220, maxWidth: 220 },
     { field: "title", headerName: "Барааны нэр", flex: 1, maxWidth: 250 },
@@ -175,25 +179,27 @@ console.log(products)
         />
       ),
     },
-    {
-      field: "actions",
-      headerName: "Үйлдэл",
-      width: 180, maxWidth: 200,
-      renderCell: (params) => (
-        <>
-          <Button onClick={() => handleEdit(params.row)} color="primary">
-            Засах
-          </Button>
-          <Button
-            onClick={() => handleDeleteClick(params.row.id)}
-            color="secondary"
-          >
-            Устгах
-          </Button>
-        </>
-      ),
-    },
   ];
+  const actionColumn = {
+    field: 'actions',
+    headerName: 'Үйлдэл',
+    width: 180,
+    maxWidth: 200,
+    renderCell: (params) => (
+      <>
+        <Button onClick={() => handleEdit(params.row)} color="primary">
+          Засах
+        </Button>
+        <Button onClick={() => handleDeleteClick(params.row.id)} color="secondary">
+          Устгах
+        </Button>
+      </>
+    ),
+  };
+  
+  const columns = user?.role === 'merchant'
+  ? [...baseColumns, actionColumn]
+  : baseColumns;
 
   const rows = products.map((product, index) => ({
     index: index + 1,
@@ -208,19 +214,21 @@ console.log(products)
 
   return (
     <Card>
-      <CardHeader
-        title="Product Table"
-        action={
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Add />}
-            onClick={handleClickOpen}
-          >
-            Нэмэх
-          </Button>
-        }
-      />
+        <CardHeader
+          title="Product Table"
+          action={
+            user?.role === "merchant"  ? (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<Add />}
+                onClick={handleClickOpen}
+              >
+                Нэиэх
+              </Button>
+            ) : null
+          }
+        />
       <CardContent>
         <div style={{ height: 500, width: "100%" }}>
           <DataGrid

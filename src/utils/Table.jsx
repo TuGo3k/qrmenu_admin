@@ -12,33 +12,21 @@ import IconButton from "@mui/material/IconButton";
 import { RiDeleteBin6Fill, RiEdit2Fill } from "react-icons/ri";
 import {
   Button,
-  Card,
-  CardContent,
-  CardHeader,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
-  Typography,
   Box,
 } from "@mui/material";
-// import Box from '@mui/material/';
 import { useState, useEffect } from "react";
 import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import apiData from "@/data/apidata";
 import axios from "axios";
+import { useAuth } from "@/components/Context/AuthProvider";
 const columns = [
   { id: "title", label: "Нэр", minWidth: 170 },
-  { id: "description", label: "Дэлгэрэнгүй", minWidth: 100 },
-  // { id: "price", label: "Үнэ", minWidth: 170, align: "right" },
-  // { id: "image", label: "Зураг", minWidth: 170, align: "right" },
-  // { id: "subcategory", label: "Дэд ангилал", minWidth: 170, align: "right" },
   {
     id: "actions",
     headerName: "Үйлдэл",
@@ -67,15 +55,12 @@ export default function CustomTable() {
   const [editingId, setEditingId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     title: "",
-    // description: "",
-    // price: "",
-    // image: null,
-    // subcategory: "",
   });
   const [isLoading, setIsLoading] = useState(true);
-  // console.log(rowsData);
+
   useEffect(() => {
     if (isLoading) {
       getRequest({
@@ -126,13 +111,8 @@ export default function CustomTable() {
     try {
       const payload = {
         title: formData.title,
-        // description: formData.description,
-        // price: formData.price,
-        // subcategory: formData.subcategory,
-        // image: formData.image, // Optional: base64 or image URL depending on your backend
       };
 
-      // If editing, send PUT
       if (editingId) {
         await axios.put(`${apiData.api_url}/category/${editingId}`, payload);
       } else {
@@ -155,8 +135,8 @@ export default function CustomTable() {
 
   const handleDeleteClick = (rowId) => {
     console.log(rowId);
-    setDeleteRowId(rowId); // Store the row ID to delete
-    setDeleteModalOpen(true); // Open the modal
+    setDeleteRowId(rowId); 
+    setDeleteModalOpen(true); 
   };
 
   const handleDeleteConfirm = async () => {
@@ -165,31 +145,27 @@ export default function CustomTable() {
         route: `/category/${deleteRowId}`,
         setIsLoading,
       });
-      setDeleteModalOpen(false); // Close the modal
-      setDeleteRowId(null); // Clear the row ID
-      window.location.reload(); // Reload the page
+      setDeleteModalOpen(false); 
+      setDeleteRowId(null);
+      window.location.reload();
     } catch (error) {
       console.error("Failed to delete the product:", error);
     }
   };
   const handleDeleteCancel = () => {
-    setDeleteModalOpen(false); // Close the modal
-    setDeleteRowId(null); // Clear the row ID
+    setDeleteModalOpen(false); 
+    setDeleteRowId(null); 
   };
-
-  // const handleDelete = (row) => {
-  //   if (window.confirm("Та энэ мөрийг устгахдаа итгэлтэй байна уу?")) {
-  //     setRowsData((prevData) => prevData.filter((item) => item.id !== row.id));
-  //   }
-  // };
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", padding: 2 }}>
       <Box display="flex" justifyContent="space-between" mb={2}>
         <h2>Категори жагсаалт</h2>
+        {user?.role === 'merchant' ? (
         <Button variant="contained" onClick={handleOpen}>
           + Категори нэмэх
         </Button>
+        ) : null}
       </Box>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
@@ -205,20 +181,22 @@ export default function CustomTable() {
                   {column.label}
                 </TableCell>
               ))}
+              {user?.role === 'merchant' ? ( 
               <TableCell align="center">Үйлдэл</TableCell>
+             ) : null}
             </TableRow>
           </TableHead>
           <TableBody>
             {rowsData
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, rowIndex) => (
-                <TableRow hover tabIndex={-1} key={row.id}>
+                <TableRow tabIndex={-1} key={row.id}>
                   <TableCell align="center">
                     {page * rowsPerPage + rowIndex + 1}
                   </TableCell>
                   {columns.map((column) => {
                     const value = row[column.id];
-                    return (
+                    return (  
                       <TableCell key={column.id} align={column.align}>
                         {column.id === "image" && value ? (
                           <img
@@ -232,6 +210,7 @@ export default function CustomTable() {
                       </TableCell>
                     );
                   })}
+                  {user?.role === 'merchant' ? ( 
                   <TableCell align="center">
                     <IconButton color="primary" onClick={() => handleEdit(row._id)}>
                       <RiEdit2Fill />
@@ -243,6 +222,7 @@ export default function CustomTable() {
                       <RiDeleteBin6Fill />
                     </IconButton>
                   </TableCell>
+                  ) : null}
                 </TableRow>
               ))}
           </TableBody>
@@ -275,6 +255,7 @@ export default function CustomTable() {
           </Button>
         </DialogActions>
       </Dialog>
+      {user?.role === 'merchant' ? (
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: "bold" }}>Категори нэмэх</DialogTitle>
         <DialogContent>
@@ -286,18 +267,6 @@ export default function CustomTable() {
               onChange={handleInputChange}
               fullWidth
             />
-            {/* <TextField label="Дэлгэрэнгүй" name="description" value={formData.description} onChange={handleInputChange} fullWidth multiline rows={3} /> */}
-            {/* <TextField label="Үнэ" name="price" value={formData.price} onChange={handleInputChange} type="number" fullWidth /> */}
-            {/* <Box>
-              <Typography variant="subtitle1">Зураг сонгох</Typography>
-              <input accept="image/*" type="file" name="image" onChange={handleInputChange} />
-              {formData.image && typeof formData.image === "object" && (
-                <Box mt={2}>
-                  <img src={URL.createObjectURL(formData.image)} alt="Зураг" style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8 }} />
-                </Box>
-              )}
-            </Box> */}
-            {/* <TextField label="Дэд категори" name="subcategory" value={formData.subcategory} onChange={handleInputChange} fullWidth /> */}
           </Box>
         </DialogContent>
         <DialogActions>
@@ -307,6 +276,7 @@ export default function CustomTable() {
           </Button>
         </DialogActions>
       </Dialog>
+      ) : null}
     </Paper>
   );
 }

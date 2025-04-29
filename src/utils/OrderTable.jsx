@@ -14,16 +14,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
-import axios from "axios";
-import apiData from "@/data/apidata";
+import { Add, Paragliding } from "@mui/icons-material";
+
 const OrderTable = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,16 +25,10 @@ const OrderTable = () => {
   const [editingId, setEditingId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [totalfoodprice, setTotalFoodPrice] = useState(0);
-
+  const [tables , setTables] = useState([])
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    table: "",
-    products: [],
-    price: "",
-  });
 
-  //   console.log(order, "order");
 useEffect(() => {
   if (selectedOrder && selectedOrder.products && products.length > 0) {
     const total = selectedOrder.products.reduce((sum, item) => {
@@ -54,12 +41,6 @@ useEffect(() => {
 
   const handleClickOpen = () => {
     setEditingId(null);
-    // setOrder({
-    //   title: "",
-    //   description: "",
-    //   //   price: "",
-    //   //   subcategory: "",
-    // });
     setOpen(true);
   };
 
@@ -78,73 +59,30 @@ useEffect(() => {
           setIsLoading,
           errorFunction: () => console.error("Failed to fetch data"),
         }),
+        getRequest({
+          route: "/table",
+          setValue: setTables,
+          setIsLoading,
+          errorFunction: () => console.error("Failed to fetch data"),
+        }),
       ]);
     }
   }, [isLoading]);
+
   console.log(selectedOrder, "orderorder");
-  const handleEdit = (row) => {
-    // console.log(row)
-    const subcat = subTitles.find((item) => item.title === row.subcategory);
 
-    setFormData({
-      title: row.title,
+  // const handleEdit = (row) => {
+  //   const subcat = subTitles.find((item) => item.title === row.subcategory);
 
-      price: row.price,
-    });
-    // setCover(row.cover);
-    setEditingId(row.id);
-    setOpen(true);
-    // console.log("FormData:", formData);
-  };
+  //   setFormData({
+  //     title: row.title,
 
-  const handleClose = () => {
-    setOpen(false);
-    setEditingId(null);
-    setFormData({
-      table: "",
-      products: [],
-      price: "",
-    });
-  };
-  console.log("table", typeof formData.table);
-  console.log("products", typeof formData.products);
-  console.log("price", typeof formData.price);
-  const handleSubmit = async () => {
-    const form = new FormData();
-    form.append("table", formData.table);
-    // formData.products.forEach((productId, index) => {
-    //   form.append(`products[${index}]`, productId);
-    // });
+  //     price: row.price,
+  //   });
+  //   setEditingId(row.id);
+  //   setOpen(true);
+  // };
 
-    form.append(
-      "products",
-      formData.products.map((id) => ({ product: id }))
-    );
-
-    form.append("price", formData.price);
-    // const form = [
-    //   {
-    //     table: formData.table,
-    //     products: [formData.products],
-    //     price: Number(formData.price),
-    //   },
-    // ];
-    try {
-      if (editingId) {
-        await axios.put(`${apiData.api_url}/product/${editingId}`, form);
-      } else {
-        await axios.post(`${apiData.api_url}/order`, {
-          table: formData.table,
-          products: formData.products.map((id) => ({ product: id })),
-          price: formData.price,
-        });
-      }
-      handleClose();
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-    }
-  };
   const closeDetail = () => {
     setSelectedOrder(null);
   };
@@ -165,8 +103,8 @@ useEffect(() => {
 
   // ///////---------УСТГАХ ХЭСЭГ------------//////////////
   const handleDeleteClick = (rowId) => {
-    setDeleteRowId(rowId); // Store the row ID to delete
-    setDeleteModalOpen(true); // Open the modal
+    setDeleteRowId(rowId); 
+    setDeleteModalOpen(true); 
   };
 
   const handleDeleteConfirm = async () => {
@@ -189,10 +127,6 @@ useEffect(() => {
   };
 
   const columns = [
-    // { field: "id", headerName: "ID", width: 220, maxWidth: 220 },
-    // { field: "products", headerName: "", width: 200, maxWidth: 250 },
-    // { field: "price", headerName: "Үнэ", width: 150, maxWidth: 180 },
-
     {
       field: "index",
       headerName: "№",
@@ -202,9 +136,13 @@ useEffect(() => {
       width: 50
     },
     {
-      field: "table",
+      field: "tableId",
       headerName: "Ширээний дугаар",
-      flex: 2,
+      flex: 1,
+      renderCell: (params) => {
+        const table = tables.find((e) => e._id === params.value);
+        return <span>{table?.name || "-"}</span>;
+      },
     },
     {
       field: "isPaid",
@@ -239,35 +177,15 @@ useEffect(() => {
         </span>
       ),
     },  
-    // {
-    //   field: "actions",
-    //   headerName: "Үйлдэл",
-    //   flex: 3,
-    //   renderCell: (params) => (
-    //     <>
-    //       <Button onClick={() => handleEdit(params.row)} color="primary">
-    //         Засах
-    //       </Button>
-    //       <Button color="primary">Архивт хийх</Button>
-    //       <Button onClick={() => handleDeleteClick(params.id)} color="secondary">
-    //         Устгах
-    //       </Button>
-    //     </>
-    //   ),
-    // }
-    
   ];
 
   const rows = order.map((order, index) => ({
     id: order._id,
     index: index + 1,
-    table: order.table,
+    tableId: order.tableId,
     isPaid: order.isPaid,
     createdAt: dayjs(order.createdAt).format("YYYY-MM-DD HH:mm"),
     price: order.price,
-    // subcategory:
-    //   subTitles.find((item) => item._id === product.subcategory)?.title || "",
-    // cover: product.cover,
   }));
   return (
     <Card>
@@ -290,21 +208,18 @@ useEffect(() => {
             rows={rows}
             columns={columns}
             pageSize={7}
-            // getRowHeight={() => 80}
             getRowHeight={(params) => {
-              // Example: Set a taller height for rows with long descriptions
-              // console.log(params.model.description)
               if (
                 params.model.description &&
                 params.model.description.length > 50
               ) {
-                return 100; // Taller height for long descriptions
+                return 100;
               }
-              return 80; // Default height
+              return 80; 
             }}
             sx={{
               "& .MuiDataGrid-row": {
-                alignItems: "center", // Center content vertically
+                alignItems: "center",
               },
             }}
           />
@@ -324,11 +239,11 @@ useEffect(() => {
             alignItems: "center",
             zIndex: 999,
           }}
-          onClick={closeDetail} // click outside to close
+          onClick={closeDetail} 
         >
           <div
             style={{ position: "relative", zIndex: 1000 }}
-            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+            onClick={(e) => e.stopPropagation()} 
           >
             <OrderContainer
               orderNumber={3}
@@ -350,7 +265,7 @@ useEffect(() => {
       )}
 
       {/* //////----------УСТГАХ ХЭСЭГ-----------/////// */}
-      <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
+      {/* <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
         <DialogTitle>Баталгаажуулалт</DialogTitle>
         <DialogContent>
           Та энэ мөрийг устгахдаа итгэлтэй байна уу?
@@ -367,123 +282,7 @@ useEffect(() => {
             Устгах
           </Button>
         </DialogActions>
-      </Dialog>
-
-      {/* //////------ЗАХИАЛГА ҮҮСГЭХ ХЭСЭГ------/////// */}
-      <Dialog
-        open={open}
-        // onClose={handleClose}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>{"Захиалга үүсгэх"}</DialogTitle>
-        <FormControl fullWidth margin="dense">
-          <InputLabel id="subcategory-label">ширээ сонго</InputLabel>
-          <Select
-            labelId="subcategory-label"
-            name="table"
-            value={formData.table}
-            onChange={handleInputChange}
-            fullWidth
-          >
-            {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
-              <MenuItem key={num} value={num}>
-                {num}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <DialogContent dividers>
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="subcategory-label">Хоолоо сонгоно уу</InputLabel>
-            <Select
-              labelId="subcategory-label"
-              name="products"
-              value={formData.products}
-              onChange={
-                (e) => {
-                  const selectedProductIds = e.target.value;
-
-                  const selectedProducts = products.filter((product) =>
-                    selectedProductIds.includes(product._id)
-                  );
-
-                  const totalfoodprice = selectedProducts.reduce(
-                    (total, product) => total + product.price,
-                    0
-                  );
-
-                  setFormData({
-                    ...formData,
-                    products: selectedProductIds,
-                    price: totalfoodprice,
-                  });
-                  
-                }
-
-                // setFormData({
-                //   ...formData,
-                //   products: e.target.value,
-                // })
-              }
-              multiple
-              fullWidth
-            >
-              {products.map((el) => (
-                <MenuItem key={el._id} value={el._id}>
-                  {el.title}
-                </MenuItem>
-              ))}
-            </Select>
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Нийт үнэ: {formData.price.toLocaleString()}₮
-            </Typography>
-          </FormControl>
-          {/* <TextField
-            margin="dense"
-            name="price"
-            label="Үнэ"
-            disabled
-            type="number"
-            value={formData.price}
-            // onChange={(e) => {
-            //   const selectedProductIds = e.target.value;
-
-            //   const selectedProducts = products.filter((product) =>
-            //     selectedProductIds.includes(product._id)
-            //   );
-
-            //   const totalfoodprice = selectedProducts.reduce(
-            //     (total, product) => total + product.price,
-            //     0
-            //   );
-
-            //   setFormData({
-            //     ...formData,
-            //     products: selectedProductIds,
-            //     price: totalfoodprice,
-            //   });
-            // }}
-            fullWidth
-          /> */}
-          {/* <Button variant="outlined" component="label" sx={{ mt: 2 }}>
-                  Зураг сонгох
-                  <input
-                    type="file"
-                    name="cover"
-                    hidden
-                    accept="image/*"
-                    onChange={handleInputChange}
-                  />
-                </Button> */}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Болих</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            Хадгалах
-          </Button>
-        </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </Card>
   );
 };

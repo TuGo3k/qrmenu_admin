@@ -25,6 +25,7 @@ export default function Page() {
     const handleSubmit = async (e) => {
       e.preventDefault();
       await register(form);
+      router.push('/auth/login')
     };
     
     const slides = [

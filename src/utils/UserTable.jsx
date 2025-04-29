@@ -10,22 +10,22 @@ import deleteRequest from "./api/deleteRequest";
 import QrSeeModal from "./qrview/SeeQrModal"; 
 import { useAuth } from "@/components/Context/AuthProvider";
 
-const ProductTable = () => {
-  const [tables, setTables] = useState([]);
+const UserTable = () => {
+  const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [isQr, setIsQr] = useState(false);  
-  const [formData, setFormData] = useState({ title: "" });
+  const [formData, setFormData] = useState({ name: "" , email: "" , phone: "" , phone_2: "", address: "", password: "" });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState(null);
-  const { user } = useAuth();
+  const { user , register } = useAuth();
 
   useEffect(() => {
     if (isLoading) {
       getRequest({
-        route: "/table",
-        setValue: setTables,
+        route: "/user",
+        setValue: setUsers,
         setIsLoading,
         errorFunction: () => console.error("Failed to fetch data"),
       });
@@ -33,40 +33,23 @@ const ProductTable = () => {
   }, [isLoading]);
 
   const handleClickOpen = () => {
-    setFormData({ title: "" });
     setOpen(true);
   };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await register(formData);
+  };
+  
 
   const handleClose = () => {
     setOpen(false);
     setIsQr(false); 
     setFormData({ title: "" });
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.title?.trim()) {
-      alert("Гарчиг оруулна уу");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const postData = {
-        number: formData.title.trim(),
-      };
-
-      if (user?.role === "merchant") {
-        postData.merchantId = user._id;
-      }
-      const response = await axios.post(`${apiData.api_url}/table`, postData);
-      console.log("Ширээ амжилттай нэмэгдлээ.", response.data);
-      handleClose();
-      setIsLoading(true); 
-    } catch (error) {
-      console.error("Хүсэлт илгээхэд алдаа гарлаа:", error);
-      alert("Алдаа гарлаа. Дахин оролдоно уу.");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleDeleteClick = (rowId) => {
@@ -77,7 +60,7 @@ const ProductTable = () => {
   const handleDeleteConfirm = async () => {
     try {
       await deleteRequest({
-        route: `/table/${deleteRowId}`,
+        route: `/user/${deleteRowId}`,
         setIsLoading,
       });
       setDeleteModalOpen(false);
@@ -95,26 +78,17 @@ const ProductTable = () => {
 
   const columns = [
     { field: "index", headerName: "№", width: 50 },
-    { field: "id", headerName: "ID", width: 220 },
-    { field: "title", headerName: "Гарчиг", flex: 1 },
-    { field: "merchantId", headerName: "MerchantId", flex: 1 },
+    { field: "name", headerName: "Нэр", flex: 1 },
+    { field: "email", headerName: "И-мэйл", flex: 1 },
+    { field: "phone", headerName: "Утас", flex: 1 },
+    { field: "phone_2", headerName: "Яралтай үед холбоо барих", flex: 1 },
+    { field: "address", headerName: "Гэрийн хаяг", flex: 1 },
     {
       field: "actions",
       headerName: "Үйлдэл",
       width: 200,
       renderCell: (params) => (
         <>
-          <Button
-            onClick={() => {
-              setSelectedTable({
-                id: params.row.id,
-                merchantId: params.row.merchantId,
-              });
-              setIsQr(true);
-            }}
-          >
-            QR Код харах
-          </Button>
           <Button
             onClick={() => handleDeleteClick(params.row.id)}
             color="secondary"
@@ -126,17 +100,20 @@ const ProductTable = () => {
     },
   ];
 
-  const rows = tables.map((table, index) => ({
+  const rows = users.map((user, index) => ({
+    id:user._id,
     index: index + 1,
-    id: table._id,
-    title: table.name,
-    merchantId: table.merchantId || "-", 
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    phone_2: user.phone_2,
+    address: user.address
   }));
 
   return (
     <Card>
       <CardHeader
-        title="Ширээнүүд"
+        title="Хэрэглэгч"
         action={
           user?.role === 'merchant' ? (
           <Button
@@ -145,7 +122,7 @@ const ProductTable = () => {
             startIcon={<Add />}
             onClick={handleClickOpen}
           >
-            Ширээ нэмэх
+            Хэрэглэгч нэмэх
           </Button>
           ) : null
         }
@@ -158,7 +135,7 @@ const ProductTable = () => {
             <DataGrid
               rows={rows}
               columns={columns}
-              pageSize={7}
+              pageSize={6}
               getRowHeight={() => 70}
               sx={{
                 "& .MuiDataGrid-row": {
@@ -200,15 +177,12 @@ const ProductTable = () => {
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Ширээ нэмэх</DialogTitle>
         <DialogContent dividers>
-          <TextField
-            type="number" 
-            margin="dense"
-            name="title"
-            label="Тоо оруулна уу"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            fullWidth
-          />
+          <TextField type="text" margin="dense" name="name" label="Нэр" value={formData.name} onChange={handleChange} fullWidth />
+          <TextField type="email" margin="dense" name="email" label="И-мэйд" value={formData.email} onChange={handleChange} fullWidth />
+          <TextField type="number" margin="dense" name="phone" label="Утасны дугаар" value={formData.phone} onChange={handleChange} fullWidth />
+          <TextField  type="number" margin="dense"name="phone_2" label="Яралтай үед холбоо барих" value={formData.phone_2} onChange={handleChange} fullWidth />
+          <TextField type="text" margin="dense" name="address" label="Хаяг" value={formData.address} onChange={handleChange} fullWidth />
+          <TextField type="text" margin="dense" name="password" label="Нууц үг" value={formData.password} onChange={handleChange} fullWidth/>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Болих</Button>
@@ -221,4 +195,4 @@ const ProductTable = () => {
   );
 };
 
-export default ProductTable;
+export default UserTable;

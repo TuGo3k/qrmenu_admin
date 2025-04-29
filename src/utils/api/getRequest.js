@@ -6,8 +6,9 @@ const getRequest = async ({ route, setValue, setIsLoading, errorFunction }) => {
     .then((e) => {
       setValue(e.data.data);
     })
-    .catch((e) => errorFunction && errorFunction())
+    .catch((e) => errorFunction && e.errorFunction())
     .finally(() => setIsLoading && setIsLoading(false))
 };
 
 export default getRequest;
+
