@@ -1,9 +1,10 @@
 "use client";
 import React from "react";
 import apiData from "@/data/apidata";
-export default function OrderContainer({ orderNumber, tableNumber, items, totalprice }) {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  console.log(items)
+export default function OrderContainer({ orderNumber, tableNumber, items}) {
+
+  const totalPrice = items.reduce((acc, item) => acc + item.price * item.total, 0);
+
   return (
     <div className="bg-white shadow-xl rounded-2xl p-6 w-full max-w-xl mx-auto my-4">
       <h2 className="text-xl font-bold text-gray-800 mb-4">
@@ -24,22 +25,21 @@ export default function OrderContainer({ orderNumber, tableNumber, items, totalp
             <div className="flex-1">
               <h3 className="text-md font-medium text-gray-800">{item.name}</h3>
               <p className="text-sm text-gray-500">
-                Тоо хэмжээ: {item.quantity}
+                Тоо хэмжээ: {item.total}
               </p>
             </div>
             <div className="text-right text-gray-700 font-semibold">
-              ₮{item.price}
-              {/* {item.price * item.quantity} */}
+              ₮{item.price * item.total}
             </div>
           </div>
         ))}
       </div>
-
       <div className="mt-6 text-right">
         <p className="text-lg font-bold text-gray-900">
-          Нийт дүн: <span className="text-green-600">{totalprice}₮</span>
+          Нийт дүн: <span className="text-green-600">{totalPrice}₮</span>
         </p>
       </div>
+
     </div>
   );
 }

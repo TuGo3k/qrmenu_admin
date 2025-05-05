@@ -25,51 +25,40 @@ import deleteRequest from "./api/deleteRequest";
 import CustomImageUpload from "./CustomImageUpload";
 import { useAuth } from "@/components/Context/AuthProvider";
 
-const ProductTable = () => {
-  const [products, setProducts] = useState([]);
+const SliderTable = () => {
+  const [slider, setSlider] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [subTitles, setSubTitles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
-  const [cover, setCover] = useState("");
-  const { user } = useAuth()
-console.log(products)
+  const [image, setImage] = useState("");
+  const { user ,loading} = useAuth()
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    price: "",
-    subcategory: "",
   });
 
   useEffect(() => {
-    if (isLoading && user?._id) {
-      Promise.all([
+    if (isLoading && user?._id ** loading) {
         getRequest({
-          route: `/subcategory?user=${user.isMerchant ? user._id : user.merchantId}`,
-          setValue: setSubTitles,
-          errorFunction: () => console.error("Failed to fetch data"),
-        }),
-
-        getRequest({
-          route: `/product?user=${user.isMerchant ? user._id : user.merchantId}`,
-          setValue: setProducts,
+          route: `/slider?user=${user.isMerchant ? user._id : user.merchantId}`,
+          setValue: setSlider,
           setIsLoading,
           errorFunction: () => console.error("Failed to fetch data"),
-        }), 
-      ]).finally(() => setIsLoading(false));
+        }).finally(() => setIsLoading(false));
     }
-  }, [isLoading , user]);
+  }, [isLoading , user , loading]);
 
   const handleClickOpen = () => {
     setEditingId(null);
     setFormData({
       title: "",
       description: "",
-      price: "",
-      subcategory: "",
     });
+    setImage('')
     setOpen(true);
   };
 
@@ -79,18 +68,16 @@ console.log(products)
     setFormData({
       title: "",
       description: "",
-      price: "",
-      cover: "",
-      subcategory: "",
+      image: "",
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "cover") {
+    if (name === "image") {
       setFormData({
         ...formData,
-        cover: files[0],
+        image: files[0],
       });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -101,21 +88,19 @@ console.log(products)
     const form = new FormData();
     form.append("title", formData.title);
     form.append("description", formData.description);
-    form.append("price", formData.price);
-    form.append("subcategory", formData.subcategory);
     form.append('merchantId' , user._id)
     form.append('user' , user._id)
 
-    if (cover && typeof cover !== "string") {
-      form.append("file", cover);
+    if (image && typeof image !== "string") {
+      form.append("image", image);
     }
 
     try {
       if(user.role === "merchant") {
       if (editingId) {
-        await axios.put(`${apiData.api_url}/product/${editingId}`, form);
+        await axios.put(`${apiData.api_url}/slider/${editingId}`, form);
       } else {
-        await axios.post(`${apiData.api_url}/product`, form);
+        await axios.post(`${apiData.api_url}/slider`, form);
       }
     }
       handleClose();
@@ -164,12 +149,10 @@ console.log(products)
   const baseColumns  = [
     { field: "index", headerName: "№", width: 50, maxWidth: 70 },
     { field: "id", headerName: "ID", width: 220, maxWidth: 220 },
-    { field: "title", headerName: "Барааны нэр", flex: 1, maxWidth: 250 },
-    { field: "description", headerName: "Тайлбар", flex: 1, maxWidth: 250 },
-    { field: "price", headerName: "Үнэ", flex: 1, maxWidth: 180 },
-    { field: "subcategory", headerName: "Дэд ангилал", flex: 1, maxWidth: 220 },
+    { field: "title", headerName: "Гарчиг", flex: 1, maxWidth: 250 },
+    { field: "description", headerName: "Дэлгэрэнгүй", flex: 1, maxWidth: 250 },
     {
-      field: "cover",
+      field: "image",
       headerName: "Зураг",
       width: 200, maxWidth: 250,
       align: "center",
@@ -203,21 +186,18 @@ console.log(products)
   ? [...baseColumns, actionColumn]
   : baseColumns;
 
-  const rows = products.map((product, index) => ({
+  const rows = slider.map((product, index) => ({
     index: index + 1,
     id: product._id,
     title: product.title,
     description: product.description,
-    price: product.price,
-    subcategory:
-      subTitles.find((item) => item._id === product.subcategory)?.title || "",
-    cover: product.cover,
+    image: product.image,
   }));
 
   return (
     <Card>
         <CardHeader
-          title="Product Table"
+          title="Слаядэр"
           action={
             user?.role === "merchant"  ? (
               <Button
@@ -226,7 +206,7 @@ console.log(products)
                 startIcon={<Add />}
                 onClick={handleClickOpen}
               >
-                Нэиэх
+                Нэмэх
               </Button>
             ) : null
           }
@@ -290,57 +270,31 @@ console.log(products)
           <TextField
             margin="dense"
             name="description"
-            label="Тайлбар"
+            label="Дэлгэрэнгүй"
             value={formData.description}
             onChange={handleInputChange}
             fullWidth
           />
-          <TextField
-            margin="dense"
-            name="price"
-            label="Үнэ"
-            type="number"
-            value={formData.price}
-            onChange={handleInputChange}
-            fullWidth
-          />
-
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="subcategory-label">Дэд ангилал</InputLabel>
-            <Select
-              labelId="subcategory-label"
-              name="subcategory"
-              value={formData.subcategory}
-              onChange={handleInputChange}
-              fullWidth
-            >
-              {subTitles.map((sub) => (
-                <MenuItem key={sub._id} value={sub._id}>
-                  {sub.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
           <div className="w-full flex justify-start">
             <div className="w-1/3 ">
               <CustomImageUpload
-                name={"cover"}
-                value={cover}
-                setValue={setCover}
+                name={"image"}
+                value={image}
+                setValue={setImage}
               />
             </div>
           </div>
 
-          {formData.cover &&
-            (typeof formData.cover === "string" ? (
+          {formData.image &&
+            (typeof formData.image === "string" ? (
               <img
-                src={`${apiData.file_api_url}${formData.cover}`}
+                src={`${apiData.file_api_url}${formData.image}`}
                 alt="preview"
                 style={{ maxHeight: 100, marginTop: 10 }}
               />
             ) : (
               <Typography variant="body2" sx={{ mt: 1 }}>
-                {formData.cover.name}
+                {formData.image.name}
               </Typography>
             ))}
         </DialogContent>
@@ -355,4 +309,4 @@ console.log(products)
   );
 };
 
-export default ProductTable;
+export default SliderTable;

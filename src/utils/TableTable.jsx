@@ -19,18 +19,17 @@ const ProductTable = () => {
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState(null);
-  const { user } = useAuth();
+  const { user ,loading} = useAuth();
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading && user?._id && !loading) {
       getRequest({
-        route: "/table",
+        route: `/table?user=${user.isMerchant ? user._id: user.merchantId}`,
         setValue: setTables,
-        setIsLoading,
         errorFunction: () => console.error("Failed to fetch data"),
-      });
+      }).finally(() => setIsLoading(false))
     }
-  }, [isLoading]);
+  }, [isLoading , user , loading]);
 
   const handleClickOpen = () => {
     setFormData({ title: "" });
@@ -52,7 +51,10 @@ const ProductTable = () => {
     try {
       const postData = {
         number: formData.title.trim(),
+        user: user._id,
       };
+
+      console.log("sending" , postData )
 
       if (user?.role === "merchant") {
         postData.merchantId = user._id;
@@ -113,7 +115,7 @@ const ProductTable = () => {
               setIsQr(true);
             }}
           >
-            QR Код харах
+            QR
           </Button>
           <Button
             onClick={() => handleDeleteClick(params.row.id)}
@@ -126,12 +128,19 @@ const ProductTable = () => {
     },
   ];
 
-  const rows = tables.map((table, index) => ({
+  const rows = tables
+  // .filter(
+  //   (table) =>
+  //     table.merchantId === user._id || table.user === user._id
+  // )
+  .map((table, index) => ({
     index: index + 1,
     id: table._id,
     title: table.name,
     merchantId: table.merchantId || "-", 
+    user: table.user || "-"
   }));
+
 
   return (
     <Card>

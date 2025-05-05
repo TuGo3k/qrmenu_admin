@@ -19,18 +19,18 @@ const UserTable = () => {
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState(null);
-  const { user , register } = useAuth();
+  const { user , signup } = useAuth();
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading && user?._id) {
       getRequest({
-        route: "/user",
+        route: `/user?user=${user._id}`,
         setValue: setUsers,
         setIsLoading,
         errorFunction: () => console.error("Failed to fetch data"),
       });
     }
-  }, [isLoading]);
+  }, [isLoading , user]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -42,14 +42,16 @@ const UserTable = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await register(formData);
+    await signup(formData);
+    setOpen(false); 
+    setFormData({ name: "", email: "", phone: "", phone_2: "", address: "", password: "" }); 
+    setIsLoading(true); 
   };
   
-
   const handleClose = () => {
     setOpen(false);
-    setIsQr(false); 
-    setFormData({ title: "" });
+    setIsQr(false);
+    setFormData({ name: "", email: "", phone: "", phone_2: "", address: "", password: "" });
   };
 
   const handleDeleteClick = (rowId) => {
@@ -107,7 +109,9 @@ const UserTable = () => {
     email: user.email,
     phone: user.phone,
     phone_2: user.phone_2,
-    address: user.address
+    address: user.address,
+    user: user._id,
+    merchantId: user._id
   }));
 
   return (

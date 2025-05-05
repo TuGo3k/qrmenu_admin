@@ -19,10 +19,6 @@ const Sidebar = () => {
       style={{ background: "var(--maincolor)" }}
       className={`h-screen fixed p-5 flex flex-col max-md:hidden justify-start  gap-5 items-center transition-all duration-300 w-[13vw]`}
     >
-      {/* <div className='border-b-[1px] border-white w-full py-2 flex justify-between items-center'>
-                <h1 className={`text-white transition-all duration-300 ${isOpen ? 'block' : 'hidden'}`}>Amar Pos</h1>
-                <IoIosMenu onClick={() => setIsOpen(!isOpen)} cursor='pointer' color='white' size={25} />
-            </div> */}
       <div className="flex items-center justify-between w-full gap-2">
         <img
           className="w-12 h-12 rounded-full object-cover"
@@ -38,18 +34,12 @@ const Sidebar = () => {
       </div>
 
       <div className="flex flex-col items-start justify-center w-full gap-3 pt-4">
-        {sidebardata.map((e, index) => (
-          <div key={index} className="w-full">
+        {sidebardata .filter((item) => {
+          if (item.role && user?.role !== item.role) return false;
+              return true;
+            }).map((e, index) => (
+           <div key={index} className="w-full">
             <div className="w-full">
-              {/* <button key={index} onClick={() => setSelectedMenu(e.title)} className={`cursor-pointer text-white flex justify-between p-2 rounded-lg
-                     ease-in-out duration-300 w-full items-center gap-2 ${selectedMenu === e.title ? 'bg-black/40' : 'hover:bg-black/15'}`}>
-                                    <div className='flex items-center gap-2'>
-                                        <img src={e.icon} className='h-8 w-8 object-cover' alt="" />
-                                        <p className={`font-extralight transition-all duration-300 ${isOpen ? 'block' : 'hidden'}`}>{e.title}</p>
-                                    </div>
-                                    {e.items && <IoIosArrowDown className={isOpen ? 'block' : 'hidden'} size={20} />}
-                                </button> */}
-
               {e.link ? (
                 <Link
                   href={e.link}
@@ -73,12 +63,6 @@ const Sidebar = () => {
                       {e.title}
                     </p>
                   </div>
-                  {/* {e.items && (
-                    <IoIosArrowDown
-                      className={isOpen ? "block" : "hidden"}
-                      size={20}
-                    />
-                  )} */}
                 </Link>
               ) : (
                 <button
@@ -114,7 +98,6 @@ const Sidebar = () => {
                 </button>
               )}
             </div>
-            {/*---------subtitles--------*/}
             {isOpen ? (
               e.title === selectedMenu ||
               (e.items &&

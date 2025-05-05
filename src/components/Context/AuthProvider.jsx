@@ -52,6 +52,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signup = async (registerData) => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("user_info"));
+      const dataWithUser = {
+        ...registerData,
+        user: userInfo?._id,
+        merchantId: userInfo?._id,
+      };
+  
+      const res = await axios.post(`${apiData.api_url}/user/register`, dataWithUser);
+      if (res.data.success) {
+        toast.success("Хэрэглэгч амжилттай бүртгэгдлээ!");
+      }
+    } catch (error) {
+      console.error("Бүртгэл хийхэд алдаа гарлаа:", error);
+      alert("Бүртгэл хийхэд алдаа гарлаа.");
+    }
+  };
+  
+  
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user_info");
@@ -59,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading ,signup}}>
       {children}
     </AuthContext.Provider>
   );

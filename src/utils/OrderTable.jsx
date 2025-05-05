@@ -6,105 +6,116 @@ import React, { useState, useEffect } from "react";
 import OrderContainer from "@/components/Order/OrderCard";
 import dayjs from "dayjs";
 import {
-  Button,
   Card,
   CardContent,
-  CardHeader,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Button,
 } from "@mui/material";
-import { Add, Paragliding } from "@mui/icons-material";
+import { useAuth } from "@/components/Context/AuthProvider";
+import axios from "axios";
+import { EyeIcon } from "lucide-react";
 
 const OrderTable = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [open, setOpen] = useState(false);
   const [order, setOrder] = useState([]);
-  const [editingId, setEditingId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [totalfoodprice, setTotalFoodPrice] = useState(0);
-  const [tables , setTables] = useState([])
+  const [tables, setTables] = useState([]);
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-useEffect(() => {
-  if (selectedOrder && selectedOrder.products && products.length > 0) {
-    const total = selectedOrder.products.reduce((sum, item) => {
-      const matched = products.find((p) => p._id === item.product);
-      return sum + (matched?.price || 0);
-    }, 0);
-    setTotalFoodPrice(total);
-  }
-}, [selectedOrder, products]);
-
-  const handleClickOpen = () => {
-    setEditingId(null);
-    setOpen(true);
-  };
+  const [rows, setRows] = useState([]);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (isLoading) {
+    if (selectedOrder && selectedOrder.products && products.length > 0) {
+      const total = selectedOrder.products.reduce((sum, item) => {
+        const matched = products.find((p) => p._id === item.product);
+        return sum + (matched?.price || 0);
+      }, 0);
+      setTotalFoodPrice(total);
+    }
+  }, [selectedOrder, products]);
+
+  const handleCheckout = async (orderId) => {
+    try {
+      await axios.put(
+        `http://localhost:8000/api/v1/order/checkout/${orderId}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      setOrder((prevOrders) =>
+        prevOrders.map((o) =>
+          o._id === orderId ? { ...o, isPaid: true } : o
+        )
+      );
+  
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error("Checkout алдаа:", error);
+    }
+  };
+  
+  useEffect(() => {
+    if (isLoading && user && !loading) {
       Promise.all([
         getRequest({
-          route: "/order",
+          route: `/order?merchantId=${user.isMerchant ? user._id : user.merchantId}`,
           setValue: setOrder,
-          setIsLoading,
-          errorFunction: () => console.error("Failed to fetch data"),
+          errorFunction: () => console.error("Failed to fetch order"),
         }),
         getRequest({
-          route: "/product",
+          route: `/product?merchantId=${user.isMerchant ? user._id : user.merchantId}`,
           setValue: setProducts,
-          setIsLoading,
-          errorFunction: () => console.error("Failed to fetch data"),
         }),
         getRequest({
-          route: "/table",
+          route: `/table?user=${user.isMerchant ? user._id : user.merchantId}`,
           setValue: setTables,
-          setIsLoading,
-          errorFunction: () => console.error("Failed to fetch data"),
         }),
-      ]);
+      ]).finally(() => setIsLoading(false));
     }
-  }, [isLoading]);
+  }, [isLoading, user, loading]);
+  
 
-  console.log(selectedOrder, "orderorder");
+  useEffect(() => {
+    if (!isLoading && order.length > 0) {
+      setRows(
+        order.map((order, index) => ({
+          id: order._id,
+          index: index + 1,
+          tableId: order.tableId,
+          isPaid: Boolean(order.isPaid),
+          createdAt: dayjs(order.createdAt).format("YYYY-MM-DD HH:mm"),
+          price: order.price,
+          user: user?._id || "-",
+          merchantId: user?.merchantId || "-",
+        }))
+      );
+    }
+  }, [order, isLoading, user]);
 
-  // const handleEdit = (row) => {
-  //   const subcat = subTitles.find((item) => item.title === row.subcategory);
-
-  //   setFormData({
-  //     title: row.title,
-
-  //     price: row.price,
-  //   });
-  //   setEditingId(row.id);
-  //   setOpen(true);
-  // };
+  const detail = (e) => {
+    const filtered = order.find((pro) => pro._id === e.id);
+    if (filtered) {
+      setSelectedOrder(filtered);
+    }
+  };
 
   const closeDetail = () => {
     setSelectedOrder(null);
   };
 
-  const detail = (e) => {
-    const filtered = order.find((pro) => pro._id === e.id);
-    if (!filtered) return;
-    setSelectedOrder(filtered);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // ///////---------УСТГАХ ХЭСЭГ------------//////////////
   const handleDeleteClick = (rowId) => {
-    setDeleteRowId(rowId); 
-    setDeleteModalOpen(true); 
+    setDeleteRowId(rowId);
+    setDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -113,31 +124,30 @@ useEffect(() => {
         route: `/order/${deleteRowId}`,
         setIsLoading,
       });
-      setDeleteModalOpen(false); // Close the modal
-      setDeleteRowId(null); // Clear the row ID
-      window.location.reload(); // Reload the page
+      setOrder((prev) => prev.filter((o) => o._id !== deleteRowId));
+      setDeleteModalOpen(false);
+      setDeleteRowId(null);
     } catch (error) {
-      console.error("Failed to delete the product:", error);
+      console.error("Failed to delete the order:", error);
     }
   };
 
   const handleDeleteCancel = () => {
-    setDeleteModalOpen(false); // Close the modal
-    setDeleteRowId(null); // Clear the row ID
+    setDeleteModalOpen(false);
+    setDeleteRowId(null);
   };
 
   const columns = [
     {
       field: "index",
       headerName: "№",
-      flex: 0,
+      width: 60,
       align: "center",
       headerAlign: "center",
-      width: 50
     },
     {
       field: "tableId",
-      headerName: "Ширээний дугаар",
+      headerName: "Ширээ",
       flex: 1,
       renderCell: (params) => {
         const table = tables.find((e) => e._id === params.value);
@@ -150,13 +160,26 @@ useEffect(() => {
       flex: 1,
       align: "center",
       headerAlign: "center",
-      renderCell: (params) => (
-        <span style={{ color: params.value ? "green" : "red" }}>
-          {params.value ? "Төлөгдсөн" : "Төлөгдөөгүй"}
-        </span>
-      ),
-    },
-    {field: "createdAt",
+      renderCell: (params) => {
+        const isPaid = params.value;
+        const orderId = params.row.id;
+        return isPaid ? (
+          <span className="text-green-600 font-bold">Төлөгдсөн</span>
+        ) : (
+          <div className="flex items-center gap-4">
+            <button
+              className="text-white bg-blue-500 hover:bg-blue-600 text-xs px-3 py-1 rounded"
+              onClick={() => handleCheckout(orderId)}
+            >
+              Төлөх
+            </button>
+            <span className="text-red-600 font-bold">Төлөгдөөгүй</span>
+          </div>
+        );
+      }      
+    },    
+    {
+      field: "createdAt",
       headerName: "Огноо",
       flex: 1,
       align: "center",
@@ -169,54 +192,40 @@ useEffect(() => {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
-        <span
+        <button
           onClick={() => detail(params.row)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+          className="px-4 py-2 text-blue-600 hover:text-white rounded hover:bg-blue-600"
         >
-          Дэлгэрэнгүй
-        </span>
+          <EyeIcon />
+        </button>
       ),
-    },  
+    },
+    {
+      field: "delete",
+      headerName: "Устгах",
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <button
+          onClick={() => handleDeleteClick(params.row.id)}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Устгах
+        </button>
+      ),
+    },
   ];
 
-  const rows = order.map((order, index) => ({
-    id: order._id,
-    index: index + 1,
-    tableId: order.tableId,
-    isPaid: order.isPaid,
-    createdAt: dayjs(order.createdAt).format("YYYY-MM-DD HH:mm"),
-    price: order.price,
-  }));
   return (
     <Card>
-      <CardHeader
-        title="Захиалгууд"
-        action={
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Add />}
-            onClick={handleClickOpen}
-          >
-            Нэмэх
-          </Button>
-        }
-      />
       <CardContent>
         <div className="w-full h-screen">
           <DataGrid
             rows={rows}
             columns={columns}
             pageSize={7}
-            getRowHeight={(params) => {
-              if (
-                params.model.description &&
-                params.model.description.length > 50
-              ) {
-                return 100;
-              }
-              return 80; 
-            }}
+            getRowHeight={() => 100}
             sx={{
               "& .MuiDataGrid-row": {
                 alignItems: "center",
@@ -225,64 +234,43 @@ useEffect(() => {
           />
         </div>
       </CardContent>
+
       {selectedOrder && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 999,
-          }}
-          onClick={closeDetail} 
+          className="fixed top-0 left-0 w-full h-full  backdrop-blur-sm flex justify-center items-center z-[999]"
+          onClick={closeDetail}
         >
           <div
-            style={{ position: "relative", zIndex: 1000 }}
-            onClick={(e) => e.stopPropagation()} 
+            className="relative z-[1000]"
+            onClick={(e) => e.stopPropagation()}
           >
             <OrderContainer
-              orderNumber={3}
-              tableNumber={selectedOrder.table}
               items={selectedOrder.products.map((el) => {
-                const matchedProduct = products.find(
-                  (p) => p._id === el.product
-                );
+                const matchedProduct = products.find((p) => p._id === el.product);
                 return {
                   name: matchedProduct?.title || "Unknown",
-                  price: matchedProduct?.price || 0,
+                  price: matchedProduct?.price || el.price || 0,
                   image: matchedProduct?.cover || "no-jpg",
+                  total: el.total || 1,
                 };
               })}
-              totalprice={totalfoodprice}
+              onCheckout={() => handleCheckout(selectedOrder._id)}
+              totalPrice={totalfoodprice}
             />
           </div>
         </div>
       )}
 
-      {/* //////----------УСТГАХ ХЭСЭГ-----------/////// */}
-      {/* <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
-        <DialogTitle>Баталгаажуулалт</DialogTitle>
-        <DialogContent>
-          Та энэ мөрийг устгахдаа итгэлтэй байна уу?
-        </DialogContent>
+      <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Устгах</DialogTitle>
+        <DialogContent>Та энэ захиалгыг устгахдаа итгэлтэй байна уу?</DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
-            Болих
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color="secondary"
-            variant="contained"
-          >
+          <Button onClick={handleDeleteCancel}>Болих</Button>
+          <Button color="error" onClick={handleDeleteConfirm}>
             Устгах
           </Button>
         </DialogActions>
-      </Dialog> */}
+      </Dialog>
     </Card>
   );
 };

@@ -55,28 +55,22 @@ export default function CustomTable() {
   const [editingId, setEditingId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
-  const { user } = useAuth()
+  const { user , loading  } = useAuth()
   const [formData, setFormData] = useState({
     title: "",
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading && user?._id && !loading) {
       getRequest({
-        route: "/category",
-        setValue: (data) => {
-          const formatted = data.map((item) => ({
-            ...item,
-            image: apiData.file_api_url + item.image,
-          }));
-          setRowsData(formatted);
-        },
-        setIsLoading,
-        errorFunction: () => console.error("Failed to fetch data"),
-      });
-    }
-  }, [isLoading]);
+          route: `/category?user=${user.isMerchant ? user._id : user.merchantId}`,
+          setValue: setRowsData,
+          errorFunction: () => console.error("Failed to fetch data"),
+        }).finally(() => setIsLoading(false))
+      }
+    }, [isLoading, user , loading]);
+  
 
   const handleChangePage = (event, newPage) => setPage(newPage);
 
@@ -89,10 +83,6 @@ export default function CustomTable() {
   const handleClose = () => {
     setFormData({
       title: "",
-      description: "",
-      price: "",
-      image: null,
-      subcategory: "",
     });
     setEditingId(null);
     setOpen(false);
@@ -106,26 +96,32 @@ export default function CustomTable() {
       setFormData((prevData) => ({ ...prevData, [name]: value }));
     }
   };
-
   const handleSubmit = async () => {
     try {
       const payload = {
         title: formData.title,
+        user: user._id,
+        merchantId: user._id
       };
-
+      
+      console.log("Sending payload:", payload);
+      
+      
+  
       if (editingId) {
         await axios.put(`${apiData.api_url}/category/${editingId}`, payload);
       } else {
         await axios.post(`${apiData.api_url}/category`, payload);
       }
-
+  
       setIsLoading(true);
       handleClose();
     } catch (error) {
       console.error("Failed to submit JSON:", error);
+
     }
   };
-
+  
   const handleEdit = (row) => {
 
     setFormData(row);
@@ -190,7 +186,7 @@ export default function CustomTable() {
             {rowsData
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, rowIndex) => (
-                <TableRow tabIndex={-1} key={row.id}>
+                <TableRow tabIndex={-1} key={row._id}>
                   <TableCell align="center">
                     {page * rowsPerPage + rowIndex + 1}
                   </TableCell>

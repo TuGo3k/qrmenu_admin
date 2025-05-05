@@ -4,7 +4,8 @@ import { FaBoxes } from "react-icons/fa";
 import { BiDetail } from "react-icons/bi";
 import { IoReorderFourSharp } from "react-icons/io5";
 import { MdTableBar } from "react-icons/md";
-import { User } from "lucide-react";
+import { SlidersHorizontal, User } from "lucide-react";
+
 const sidebardata = [
   {
     title: "Ангилал",
@@ -37,9 +38,15 @@ const sidebardata = [
     link: "/table",
   },
   {
+    title: "Слаядэр",
+    icon: <SlidersHorizontal />,
+    link: "/slider",
+  },
+  {
     title: "Хэрэглэгч нэмэх",
     icon: <User />,
     link: "/user",
+    role: "merchant",
   },
 ];
 
