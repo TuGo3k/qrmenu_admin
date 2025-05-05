@@ -136,7 +136,7 @@ body {
   transform: translate(-50%, -50%); /* Centers the modal */
   margin: 0;
   padding: 50px;
-  width: 45vw;
+  width: fit-content;
   height: max-content;
   background-color: #fff;
   border-radius: 15px;
@@ -146,4 +146,17 @@ body {
   flex-direction: column;
   align-items: start;
   gap: 30px;
+}
+
+.blur_container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1999;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* slight blur/dark effect */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

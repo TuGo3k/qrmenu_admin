@@ -1,17 +1,19 @@
-"use client"
+"use client";
 import Navbar from "@/components/Home/Navbar";
 import MainContainer from "@/utils/MainContainer";
 import UserTable from "@/utils/UserTable";
-import React from "react"
+import React from "react";
+import ContentContainer from "@/utils/ContentContainer";
 
 const page = () => {
-
-    return(
-        <MainContainer>
-            <Navbar />
-            <UserTable />
-        </MainContainer>
-    )
-}
+  return (
+    <MainContainer>
+      <Navbar />
+      <ContentContainer>
+        <UserTable />
+      </ContentContainer>
+    </MainContainer>
+  );
+};
 
 export default page;
