@@ -127,7 +127,7 @@ const ProductTable = () => {
       ),
     },
   ];
-
+console.log(tables)
   const rows = tables
   // .filter(
   //   (table) =>
@@ -136,7 +136,7 @@ const ProductTable = () => {
   .map((table, index) => ({
     index: index + 1,
     id: table._id,
-    title: table.name,
+    title: `${table.name} (${table.isActive === false ? "Хоосон" : "Хүнтэй"})`,
     merchantId: table.merchantId || "-", 
     user: table.user || "-"
   }));
