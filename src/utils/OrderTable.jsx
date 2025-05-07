@@ -5,18 +5,13 @@ import deleteRequest from "./api/deleteRequest";
 import React, { useState, useEffect } from "react";
 import OrderContainer from "@/components/Order/OrderCard";
 import dayjs from "dayjs";
-import {
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Button,
-} from "@mui/material";
+import { Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, Button, Snackbar } from "@mui/material";
 import { useAuth } from "@/components/Context/AuthProvider";
 import axios from "axios";
 import { EyeIcon } from "lucide-react";
+import io from "socket.io-client";  
+import { Alert } from "flowbite-react";
+import toast from "react-hot-toast";
 
 const OrderTable = () => {
   const [products, setProducts] = useState([]);
@@ -29,6 +24,20 @@ const OrderTable = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rows, setRows] = useState([]);
   const { user, loading } = useAuth();
+  const [openSnackbar , setOpenSnackbar] = useState(false)
+  const socket = io("http://localhost:8000"); 
+
+  useEffect(() => {
+    socket.on("new-order", (newOrder) => {
+      setOrder((prevOrders) => [newOrder, ...prevOrders]);
+      toast.success('Захиалга орж ирлээ')
+      // setOpenSnackbar(true)
+    });
+
+    return () => {
+      socket.off("new-order");
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (selectedOrder && selectedOrder.products && products.length > 0) {
@@ -63,14 +72,13 @@ const OrderTable = () => {
       console.error("Checkout алдаа:", error);
     }
   };
-  
+
   useEffect(() => {
     if (isLoading && user && !loading) {
       Promise.all([
         getRequest({
           route: `/order?merchantId=${user.isMerchant ? user._id : user.merchantId}`,
           setValue: setOrder,
-          errorFunction: () => console.error("Failed to fetch order"),
         }),
         getRequest({
           route: `/product?merchantId=${user.isMerchant ? user._id : user.merchantId}`,
@@ -80,10 +88,14 @@ const OrderTable = () => {
           route: `/table?user=${user.isMerchant ? user._id : user.merchantId}`,
           setValue: setTables,
         }),
-      ]).finally(() => setIsLoading(false));
+      ]).finally(() => {
+        setIsLoading(false)
+        if (order.length > 0) {
+          toast.success("Захиалга орж ирлээ");
+        }
+      });
     }
-  }, [isLoading, user, loading]);
-  
+  }, [isLoading, user, loading ,order]);
 
   useEffect(() => {
     if (!isLoading && order.length > 0) {
@@ -101,6 +113,10 @@ const OrderTable = () => {
       );
     }
   }, [order, isLoading, user]);
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
 
   const detail = (e) => {
     const filtered = order.find((pro) => pro._id === e.id);
@@ -271,6 +287,27 @@ const OrderTable = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <div>
+      <Snackbar
+      open={openSnackbar}
+      autoHideDuration={6000}
+      onClose={handleCloseSnackbar}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert
+        onClose={handleCloseSnackbar}
+        severity="success"
+        sx={{
+          width: "100%",
+          backgroundColor: 'yellow', 
+          color: 'black', 
+        }}
+      >
+        Шинэ захиалга орж ирлээ!
+      </Alert>
+    </Snackbar>
+    </div>
     </Card>
   );
 };

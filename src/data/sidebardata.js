@@ -2,10 +2,9 @@ import { BiCategoryAlt } from "react-icons/bi";
 import { MdCategory } from "react-icons/md";
 import { FaBoxes } from "react-icons/fa";
 import { BiDetail } from "react-icons/bi";
-import { IoReorderFourSharp } from "react-icons/io5";
 import { MdTableBar } from "react-icons/md";
-import { SlidersHorizontal, User } from "lucide-react";
-
+import { SlidersHorizontal, User ,ChartBarStacked ,LayoutTemplate} from "lucide-react";
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 const sidebardata = [
   {
     title: "Ангилал",
@@ -29,8 +28,9 @@ const sidebardata = [
   },
   {
     title: "Захиалга",
-    icon: <IoReorderFourSharp />,
+    icon: <NotificationsActiveIcon />,
     link: "/order",
+    showBadge: true, 
   },
   {
     title: "Ширээ",
@@ -39,14 +39,24 @@ const sidebardata = [
   },
   {
     title: "Слаядэр",
-    icon: <SlidersHorizontal />,
+    icon: <SlidersHorizontal size={16}/>,
     link: "/slider",
   },
   {
     title: "Хэрэглэгч нэмэх",
-    icon: <User />,
+    icon: <User size={16}/>,
     link: "/user",
     role: "merchant",
+  },
+  {
+    title: "Ширээ категори",
+    icon: <ChartBarStacked size={16}/>,
+    link: "/tablecategory",
+  },
+  {
+    title: "Template",
+    icon: <LayoutTemplate size={16}/>,
+    link: "/template",
   },
 ];
 
