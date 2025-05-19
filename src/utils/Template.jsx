@@ -15,7 +15,7 @@ const Template = () => {
   const { user, setUser } = useAuth();
 
   useEffect(() => {
-    socket = io("http://localhost:8000");
+    socket = io("https://qmenubackender.onrender.com/");
 
     socket.on("new-state", () => {
       setIsLoading(true);

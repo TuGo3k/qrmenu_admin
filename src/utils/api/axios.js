@@ -5,7 +5,7 @@ let utga = false;
 export const axiosUrl =
   utga === true
     ? "https://tech.gai2.shop/api/tech"
-    : "http://localhost:8000/api/v1";
+    : "https://qmenubackender.onrender.com/api/v1";
 
 const axiosInstance = axios.create({
   baseURL: axiosUrl,

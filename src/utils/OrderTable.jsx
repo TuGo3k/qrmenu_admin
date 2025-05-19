@@ -63,7 +63,7 @@ const OrderTable = () => {
   const handleCheckout = async (orderId) => {
     try {
       await axios.put(
-        `http://localhost:8000/api/v1/order/checkout/${orderId}`,
+        `https://qmenubackender.onrender.com/api/v1/order/checkout/${orderId}`,
         {},
         {
           headers: {

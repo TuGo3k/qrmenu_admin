@@ -1,6 +1,6 @@
 const apiData = {
-    api_url: "http://localhost:8000/api/v1",
-    file_api_url: "http://localhost:8000/uploads/",
+    api_url: "https://qmenubackender.onrender.com/api/v1",
+    file_api_url: "https://qmenubackender.onrender.com/uploads/",
   };
   
   export default apiData;

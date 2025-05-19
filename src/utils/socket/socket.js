@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 const ws = false;
 const socket = io(
-  ws === true ? "https://tech.gai2.shop" : "http://localhost:8000"
+  ws === true ? "https://tech.gai2.shop" : "https://qmenubackender.onrender.com"
 );
 
 // Check socket connection
