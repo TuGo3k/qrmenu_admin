@@ -16,7 +16,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import apiData from "@/data/apidata";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add } from "@mui/icons-material";
@@ -24,6 +23,7 @@ import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import CustomImageUpload from "./CustomImageUpload";
 import { useAuth } from "@/components/Context/AuthProvider";
+import axiosInstance from "./api/axios";
 
 const ProductTable = () => {
   const [products, setProducts] = useState([]);
@@ -34,8 +34,8 @@ const ProductTable = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
   const [cover, setCover] = useState("");
-  const { user } = useAuth()
-console.log(products)
+  const { user ,loading} = useAuth()
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -43,24 +43,27 @@ console.log(products)
     subcategory: "",
   });
 
-  useEffect(() => {
-    if (isLoading && user?._id) {
-      Promise.all([
-        getRequest({
-          route: `/subcategory?user=${user.isMerchant ? user._id : user.merchantId}`,
-          setValue: setSubTitles,
-          errorFunction: () => console.error("Failed to fetch data"),
-        }),
+  const fetchdProduct = () =>{ 
+    if (!user || loading) return;
+    setIsLoading(true);
+    Promise.all([
+      getRequest({
+        route: `/subcategory?user=${user?.isMerchant ? user._id : user?.merchantId}`,
+        setValue: setSubTitles,
+        errorFunction: () => console.error("Failed to fetch data"),
+      }),
 
-        getRequest({
-          route: `/product?user=${user.isMerchant ? user._id : user.merchantId}`,
-          setValue: setProducts,
-          setIsLoading,
-          errorFunction: () => console.error("Failed to fetch data"),
-        }), 
-      ]).finally(() => setIsLoading(false));
-    }
-  }, [isLoading , user]);
+      getRequest({
+        route: `/product?user=${user?.isMerchant ? user._id : user?.merchantId}`,
+        setValue: setProducts,
+        setIsLoading,
+        errorFunction: () => console.error("Failed to fetch data"),
+      }), 
+    ]).finally(() => setIsLoading(false));
+}
+  useEffect(() => {
+    fetchdProduct()
+  }, [loading , user]);
 
   const handleClickOpen = () => {
     setEditingId(null);
@@ -113,13 +116,14 @@ console.log(products)
     try {
       if(user.role === "merchant") {
       if (editingId) {
-        await axios.put(`${apiData.api_url}/product/${editingId}`, form);
+        await axiosInstance.put(`${apiData.api_url}/product/${editingId}`, form);
       } else {
-        await axios.post(`${apiData.api_url}/product`, form);
+        await axiosInstance.post(`${apiData.api_url}/product`, form);
+        handleClose();
+        fetchdProduct();
       }
     }
-      handleClose();
-      window.location.reload();
+      
     } catch (err) {
       console.error(err);
     }
@@ -150,8 +154,8 @@ console.log(products)
         setIsLoading,
       });
       setDeleteModalOpen(false); 
+      fetchdProduct();
       setDeleteRowId(null); 
-      window.location.reload(); 
     } catch (error) {
       console.error("Failed to delete the product:", error);
     }
@@ -226,7 +230,7 @@ console.log(products)
                 startIcon={<Add />}
                 onClick={handleClickOpen}
               >
-                Нэиэх
+                Нэмэх
               </Button>
             ) : null
           }

@@ -23,12 +23,11 @@ import { useState, useEffect } from "react";
 import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import apiData from "@/data/apidata";
+import axios from "axios";
 import { useAuth } from "@/components/Context/AuthProvider";
 import axiosInstance from "./api/axios";
-import toast from "react-hot-toast";
-import socket from "./socket/socket";
 const columns = [
-  { id: "title", label: "Нэр", minWidth: 170 },
+  { id: "title", label: "Ширээ нэр", minWidth: 170 },
   {
     id: "actions",
     headerName: "Үйлдэл",
@@ -49,7 +48,7 @@ const columns = [
   },
 ];
 
-export default function CustomTable() {
+export default function TableCategory() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [rowsData, setRowsData] = useState([]);
@@ -63,23 +62,15 @@ export default function CustomTable() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-
-
-  const handleRefresh = () => {
-    if (!user || loading) return;
-    setIsLoading(true);
-
-    getRequest({
-      route: `/category?user=${user.isMerchant ? user._id : user.merchantId}`,
-      setValue: setRowsData,
-      setIsLoading,
-      errorFunction: () => console.error("Failed to fetch data"),
-    })
-  }
-
   useEffect(() => {
-    handleRefresh()
-    }, [user , loading]);
+    if (isLoading && user?._id && !loading) {
+      getRequest({
+          route: `/tablecategory?user=${user.isMerchant ? user._id : user.merchantId}`,
+          setValue: setRowsData,
+          errorFunction: () => console.error("Failed to fetch data"),
+        }).finally(() => setIsLoading(false))
+      }
+    }, [isLoading, user , loading]);
   
 
   const handleChangePage = (event, newPage) => setPage(newPage);
@@ -113,14 +104,18 @@ export default function CustomTable() {
         user: user._id,
         merchantId: user._id
       };
-            
+      
+      console.log("Sending payload:", payload);
+      
+      
+  
       if (editingId) {
-        await axiosInstance.put(`${apiData.api_url}/category/${editingId}`, payload);
+        await axiosInstance.put(`${apiData.api_url}/tablecategory/${editingId}`, payload);
       } else {
-        await axiosInstance.post(`${apiData.api_url}/category`, payload);
+        await axiosInstance.post(`${apiData.api_url}/tablecategory`, payload);
       }
-      toast.success("Амжилттай хадгаллаа");
-      handleRefresh();
+  
+      setIsLoading(true);
       handleClose();
     } catch (error) {
       console.error("Failed to submit JSON:", error);
@@ -144,13 +139,11 @@ export default function CustomTable() {
   const handleDeleteConfirm = async () => {
     try {
       await deleteRequest({
-        route: `/category/${deleteRowId}`,
+        route: `/tablecategory/${deleteRowId}`,
         setIsLoading,
       });
       setDeleteModalOpen(false); 
       setDeleteRowId(null);
-      handleRefresh();
-      toast.success("Амжилттай устгалаа");
     } catch (error) {
       console.error("Failed to delete the product:", error);
     }
@@ -163,10 +156,10 @@ export default function CustomTable() {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden", padding: 2 }}>
       <Box display="flex" justifyContent="space-between" mb={2}>
-        <h2>Категори жагсаалт</h2>
+        <h2>Ширээ нэр</h2>
         {user?.role === 'merchant' ? (
         <Button variant="contained" onClick={handleOpen}>
-          + Категори нэмэх
+          + Ширээ нэр нэмэх
         </Button>
         ) : null}
       </Box>

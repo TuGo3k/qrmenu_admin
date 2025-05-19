@@ -5,13 +5,23 @@ import deleteRequest from "./api/deleteRequest";
 import React, { useState, useEffect } from "react";
 import OrderContainer from "@/components/Order/OrderCard";
 import dayjs from "dayjs";
-import { Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, Button, Snackbar } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+  Snackbar,
+} from "@mui/material";
 import { useAuth } from "@/components/Context/AuthProvider";
 import axios from "axios";
-import { EyeIcon } from "lucide-react";
-import io from "socket.io-client";  
+import { DeleteIcon, EyeIcon, Trash } from "lucide-react";
 import { Alert } from "flowbite-react";
 import toast from "react-hot-toast";
+import socket from "../utils/socket/socket";
+
 
 const OrderTable = () => {
   const [products, setProducts] = useState([]);
@@ -24,14 +34,15 @@ const OrderTable = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rows, setRows] = useState([]);
   const { user, loading } = useAuth();
-  const [openSnackbar , setOpenSnackbar] = useState(false)
-  const socket = io("http://localhost:8000"); 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [newOrderCount, setNewOrderCount] = useState(0);
+
 
   useEffect(() => {
     socket.on("new-order", (newOrder) => {
+      console.log("order:", newOrder);
       setOrder((prevOrders) => [newOrder, ...prevOrders]);
       toast.success('Захиалга орж ирлээ')
-      // setOpenSnackbar(true)
     });
 
     return () => {
@@ -60,13 +71,9 @@ const OrderTable = () => {
           },
         }
       );
-  
       setOrder((prevOrders) =>
-        prevOrders.map((o) =>
-          o._id === orderId ? { ...o, isPaid: true } : o
-        )
+        prevOrders.map((o) => (o._id === orderId ? { ...o, isPaid: true } : o))
       );
-  
       setSelectedOrder(null);
     } catch (error) {
       console.error("Checkout алдаа:", error);
@@ -77,11 +84,15 @@ const OrderTable = () => {
     if (isLoading && user && !loading) {
       Promise.all([
         getRequest({
-          route: `/order?merchantId=${user.isMerchant ? user._id : user.merchantId}`,
+          route: `/order?merchantId=${
+            user.isMerchant ? user._id : user.merchantId
+          }`,
           setValue: setOrder,
         }),
         getRequest({
-          route: `/product?merchantId=${user.isMerchant ? user._id : user.merchantId}`,
+          route: `/product?merchantId=${
+            user.isMerchant ? user._id : user.merchantId
+          }`,
           setValue: setProducts,
         }),
         getRequest({
@@ -89,13 +100,13 @@ const OrderTable = () => {
           setValue: setTables,
         }),
       ]).finally(() => {
-        setIsLoading(false)
+        setIsLoading(false);
         if (order.length > 0) {
           toast.success("Захиалга орж ирлээ");
         }
       });
     }
-  }, [isLoading, user, loading ,order]);
+  }, [isLoading, user, loading, order]);
 
   useEffect(() => {
     if (!isLoading && order.length > 0) {
@@ -142,6 +153,7 @@ const OrderTable = () => {
       });
       setOrder((prev) => prev.filter((o) => o._id !== deleteRowId));
       setDeleteModalOpen(false);
+      toast.success("Захиалга амжилттай устгагдлаа");
       setDeleteRowId(null);
     } catch (error) {
       console.error("Failed to delete the order:", error);
@@ -166,7 +178,7 @@ const OrderTable = () => {
       headerName: "Ширээ",
       flex: 1,
       renderCell: (params) => {
-        const table = tables.find((e) => e._id === params.value);
+        const table = tables.find((e) => e._id === params?.value);
         return <span>{table?.name || "-"}</span>;
       },
     },
@@ -177,8 +189,8 @@ const OrderTable = () => {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => {
-        const isPaid = params.value;
-        const orderId = params.row.id;
+        const isPaid = params?.value;
+        const orderId = params?.row.id;
         return isPaid ? (
           <span className="text-green-600 font-bold">Төлөгдсөн</span>
         ) : (
@@ -192,8 +204,8 @@ const OrderTable = () => {
             <span className="text-red-600 font-bold">Төлөгдөөгүй</span>
           </div>
         );
-      }      
-    },    
+      },
+    },
     {
       field: "createdAt",
       headerName: "Огноо",
@@ -209,7 +221,7 @@ const OrderTable = () => {
       headerAlign: "center",
       renderCell: (params) => (
         <button
-          onClick={() => detail(params.row)}
+          onClick={() => detail(params?.row)}
           className="px-4 py-2 text-blue-600 hover:text-white rounded hover:bg-blue-600"
         >
           <EyeIcon />
@@ -224,10 +236,10 @@ const OrderTable = () => {
       headerAlign: "center",
       renderCell: (params) => (
         <button
-          onClick={() => handleDeleteClick(params.row.id)}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          onClick={() => handleDeleteClick(params?.row.id)}
+          className="px-4 py-2 text-white rounded hover:bg-red-600"
         >
-          Устгах
+          <Trash color="red"/>
         </button>
       ),
     },
@@ -240,7 +252,7 @@ const OrderTable = () => {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={7}
+            pageSize={15}
             getRowHeight={() => 100}
             sx={{
               "& .MuiDataGrid-row": {
@@ -262,7 +274,9 @@ const OrderTable = () => {
           >
             <OrderContainer
               items={selectedOrder.products.map((el) => {
-                const matchedProduct = products.find((p) => p._id === el.product);
+                const matchedProduct = products.find(
+                  (p) => p._id === el.product
+                );
                 return {
                   name: matchedProduct?.title || "Unknown",
                   price: matchedProduct?.price || el.price || 0,
@@ -279,35 +293,37 @@ const OrderTable = () => {
 
       <Dialog open={deleteModalOpen} onClose={handleDeleteCancel}>
         <DialogTitle>Устгах</DialogTitle>
-        <DialogContent>Та энэ захиалгыг устгахдаа итгэлтэй байна уу?</DialogContent>
+        <DialogContent>
+          Та энэ захиалгыг устгахдаа итгэлтэй байна уу?
+        </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Болих</Button>
           <Button color="error" onClick={handleDeleteConfirm}>
-            Устгах
-          </Button>
+              Устгах
+          </Button> 
         </DialogActions>
       </Dialog>
 
       <div>
-      <Snackbar
-      open={openSnackbar}
-      autoHideDuration={6000}
-      onClose={handleCloseSnackbar}
-      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-    >
-      <Alert
-        onClose={handleCloseSnackbar}
-        severity="success"
-        sx={{
-          width: "100%",
-          backgroundColor: 'yellow', 
-          color: 'black', 
-        }}
-      >
-        Шинэ захиалга орж ирлээ!
-      </Alert>
-    </Snackbar>
-    </div>
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="success"
+            sx={{
+              width: "100%",
+              backgroundColor: "yellow",
+              color: "black",
+            }}
+          >
+            Шинэ захиалга орж ирлээ!
+          </Alert>
+        </Snackbar>
+      </div>
     </Card>
   );
 };

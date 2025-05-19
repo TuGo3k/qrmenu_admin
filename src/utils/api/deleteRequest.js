@@ -1,14 +1,18 @@
-// utils/deleteRequest.js
-import apidata from "@/data/apidata";
-import axios from "axios";
+// import axiosInstance from "@/utils/axiosInstance"; 
+
+import axiosInstance from "./axios";
 
 const deleteRequest = async ({ route, successFunction, errorFunction, setIsLoading }) => {
-  return axios.delete(apidata.api_url + route)
+  return axiosInstance.delete(route) 
     .then(() => {
       successFunction && successFunction();
     })
-    .catch((e) => errorFunction && errorFunction(e))
-    .finally(() => setIsLoading && setIsLoading(false));
+    .catch((e) => {
+      errorFunction && errorFunction(e);
+    })
+    .finally(() => {
+      setIsLoading && setIsLoading(false);
+    });
 };
 
 export default deleteRequest;

@@ -13,6 +13,7 @@ import apiData from "@/data/apidata";
 import axios from "axios";
 import { useAuth } from "@/components/Context/AuthProvider";
 import CustomImageUpload from "./CustomImageUpload";
+import axiosInstance from "./api/axios";
 
 const columns = [
   { id: "title", label: "Дэд Категори" },
@@ -29,6 +30,7 @@ export default function CustomTable() {
   const [editingId, setEditingId] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
+  const [refresh , setRefresh] = useState(0)
   const { user, loading } = useAuth();
   const [formData, setFormData] = useState({ title: "", category: ""});
   const [cover ,setCover] = useState('')
@@ -53,7 +55,6 @@ export default function CustomTable() {
     }
   }, [isLoading, user,loading]);
 
-  console.log('loading' , rowsData)
 
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
@@ -90,9 +91,13 @@ export default function CustomTable() {
       }
 
       if (editingId) {
-        await axios.put(`${apiData.api_url}/subcategory/${editingId}`, payload);
+        await axiosInstance.put(`${apiData.api_url}/subcategory/${editingId}`, 
+          payload, 
+          
+        );
       } else {
-        await axios.post(`${apiData.api_url}/subcategory`, payload);
+
+        await axiosInstance.post('/subcategory', payload);
       }
 
       setIsLoading(true);

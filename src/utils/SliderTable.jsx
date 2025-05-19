@@ -16,7 +16,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import apiData from "@/data/apidata";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add } from "@mui/icons-material";
@@ -24,6 +23,8 @@ import getRequest from "./api/getRequest";
 import deleteRequest from "./api/deleteRequest";
 import CustomImageUpload from "./CustomImageUpload";
 import { useAuth } from "@/components/Context/AuthProvider";
+import axiosInstance from "./api/axios";
+import toast from "react-hot-toast";
 
 const SliderTable = () => {
   const [slider, setSlider] = useState([]);
@@ -33,6 +34,7 @@ const SliderTable = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteRowId, setDeleteRowId] = useState(null);
+  const [refresh , setRefresh] = useState(0)
   const [image, setImage] = useState("");
   const { user ,loading} = useAuth()
 
@@ -41,16 +43,23 @@ const SliderTable = () => {
     description: "",
   });
 
-  useEffect(() => {
-    if (isLoading && user?._id ** loading) {
-        getRequest({
-          route: `/slider?user=${user.isMerchant ? user._id : user.merchantId}`,
-          setValue: setSlider,
-          setIsLoading,
-          errorFunction: () => console.error("Failed to fetch data"),
-        }).finally(() => setIsLoading(false));
-    }
-  }, [isLoading , user , loading]);
+const refreshData = () => {
+  if (!user || loading) return;
+  setIsLoading(true);
+
+  getRequest({
+    route: `/slider?user=${user.isMerchant ? user._id : user.merchantId}`,
+    setValue: setSlider,
+    setIsLoading,
+    errorFunction: () => console.error("Failed to fetch data"),
+  });
+};
+
+useEffect(() => {
+  refreshData()
+},[user, loading]);
+
+  
 
   const handleClickOpen = () => {
     setEditingId(null);
@@ -98,13 +107,14 @@ const SliderTable = () => {
     try {
       if(user.role === "merchant") {
       if (editingId) {
-        await axios.put(`${apiData.api_url}/slider/${editingId}`, form);
+        await axiosInstance.put(`${apiData.api_url}/slider/${editingId}`, form);
       } else {
-        await axios.post(`${apiData.api_url}/slider`, form);
+        await axiosInstance.post(`${apiData.api_url}/slider`, form);
       }
     }
       handleClose();
-      window.location.reload();
+      toast.success("Амжилттай хадгаллаа");
+      refreshData(); 
     } catch (err) {
       console.error(err);
     }
@@ -131,21 +141,27 @@ const SliderTable = () => {
   const handleDeleteConfirm = async () => {
     try {
       await deleteRequest({
-        route: `/product/${deleteRowId}`,
+        route: `/slider/${deleteRowId}`,
         setIsLoading,
+        successFunction: () => toast.success("Амжилттай устгалаа"),
+        errorFunction: (err) => {
+          console.error("Устгах үед алдаа гарлаа:", err);
+          toast.error("Устгах үед алдаа гарлаа");
+        },
       });
-      setDeleteModalOpen(false); 
-      setDeleteRowId(null); 
-      window.location.reload(); 
-    } catch (error) {
-      console.error("Failed to delete the product:", error);
+    } finally {
+      setDeleteModalOpen(false);
+      setDeleteRowId(null);
+      refreshData();
     }
+    
   };
 
   const handleDeleteCancel = () => {
     setDeleteModalOpen(false);
     setDeleteRowId(null); 
   };
+
   const baseColumns  = [
     { field: "index", headerName: "№", width: 50, maxWidth: 70 },
     { field: "id", headerName: "ID", width: 220, maxWidth: 220 },

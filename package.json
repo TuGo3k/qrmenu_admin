@@ -21,6 +21,7 @@
     "dayjs": "^1.11.13",
     "flowbite-react": "^0.11.7",
     "html2canvas": "^1.4.1",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.503.0",
     "next": "^15.3.0",
     "ogl": "^1.0.11",

@@ -49,12 +49,12 @@ const sidebardata = [
     role: "merchant",
   },
   {
-    title: "Ширээ категори",
+    title: "Ширээ ангилал",
     icon: <ChartBarStacked size={16}/>,
     link: "/tablecategory",
   },
   {
-    title: "Template",
+    title: "Вэб сайтын загвар",
     icon: <LayoutTemplate size={16}/>,
     link: "/template",
   },

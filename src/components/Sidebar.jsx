@@ -13,11 +13,13 @@ const Sidebar = () => {
   const [selectedMenu, setSelectedMenu] = useState("");
   const { user } = useAuth();
   const [hasNewOrder, setHasNewOrder] = useState(false);
+  const [newOrderCount, setNewOrderCount] = useState(0);
 
   useEffect(() => {
     const socket = io("http://localhost:8000");
+
     socket.on("new-order", () => {
-      setHasNewOrder(true);
+      setNewOrderCount((prev) => prev + 1); 
     });
 
     return () => {
@@ -27,7 +29,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (pathName.includes("/order")) {
-      setHasNewOrder(false);
+      setNewOrderCount(0);
     }
   }, [pathName]);
 
@@ -65,25 +67,19 @@ const Sidebar = () => {
                         : "hover:bg-[var(--hover)] hover:text-[var(--sidebar-text-hover)]"
                     }`}
                 >
-                  {/* <div className="flex items-center gap-2">
-                    {e.icon}
-                    <p className={`font-extralight ${isOpen ? "block" : "hidden"}`}>
-                      {e.title}
-                    </p>
-                    {e.showBadge && hasNewOrder && (
-                      <span className="w-2 h-2 bg-red-500 rounded-full ml-2"></span>
-                    )}
-                  </div> */}
-                  <div className="relative flex items-center gap-2">
+                <div className="relative flex items-center gap-2">
                   {e.icon}
                   <p className={`font-extralight ${isOpen ? "block" : "hidden"}`}>
-                      {e.title}
+                    {e.title}
                   </p>
-                  {e.showBadge && hasNewOrder && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping">{e.title}</span>
-                  )}
-                  {e.showBadge && hasNewOrder && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+
+                  {e.showBadge && newOrderCount > 0 && (
+                    <>
+                      <span className="absolute -top-2 left-2 w-5 h-5 rounded-full bg-red-500 opacity-75 animate-ping"></span>
+                      <span className="absolute -top-2 left-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center z-10">
+                        {newOrderCount}
+                      </span>
+                    </>
                   )}
                 </div>
 
