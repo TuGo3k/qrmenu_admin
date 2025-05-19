@@ -11,7 +11,7 @@ const Page = ({ params }) => {
 
   useEffect(() => {
     getRequest({
-      route: `/template?user=$`,
+      route: `/template?user`,
       setValue: setDatas,
       setLoading,
     });
