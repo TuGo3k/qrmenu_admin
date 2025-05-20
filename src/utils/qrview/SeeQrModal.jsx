@@ -12,7 +12,7 @@ const QrSeeModal = ({ closeModal, tableId, merchantId }) => {
 
 
   const qrUrl = user?.own_web_id
-  ? `http://192.168.0.8:3000/check/${merchantId}/${tableId}`
+  ? `https://qmenuadmin.vercel.app/check/${merchantId}/${tableId}`
   : "";
 
   const downloadQR = () => {
